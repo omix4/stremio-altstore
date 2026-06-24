@@ -1,0 +1,88 @@
+name: Bug Report
+description: Report broken or incorrect behavior
+title: "[Bug] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This repository is an AltStore source collection (compatible with Feather, AltStore, ESign, and others). Please fill in the information below so we can resolve the issue quickly.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Which component?
+      description: The source of the problem
+      options:
+        - "stremio-ios.json (iOS / iPadOS source)"
+        - "stremio-tvos.json (tvOS source)"
+        - "stremio-updater.py (auto-update script)"
+        - "GitHub Actions workflow"
+        - "Other / I don't know"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Affected version(s)
+      description: Which Stremio version(s) are affected? (e.g. 2.0.2, build 17)
+      placeholder: "2.0.2 build 17"
+    validations:
+      required: false
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction steps
+      description: What did you do to reproduce the issue?
+      placeholder: |
+        1. Opened your signing app (e.g. Feather)
+        2. Went to Sources
+        3. Added the URL
+        4. Tapped "Get"
+        5. Got this error: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: false
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened? Paste the full error message if any.
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device and OS version
+      description: iPhone 14 Pro, iOS 17.4 / Apple TV 4K, tvOS 17.4 etc.
+      placeholder: "iPhone 14 Pro, iOS 17.4"
+    validations:
+      required: false
+
+  - type: input
+    id: signer
+    attributes:
+      label: Signing app
+      description: Feather, AltStore Classic, AltStore PAL, ESign, Scarlet, Sideloadly, etc.
+      placeholder: "Feather 1.2.3 (or your signing app version)"
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Additional logs / screenshots
+      description: Paste here or attach a screenshot.
+    validations:
+      required: false

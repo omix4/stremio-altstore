@@ -1,0 +1,26 @@
+name: Question
+description: General questions or help requests
+title: "[Question] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For installation, configuration, or usage questions please post here.
+        For bugs please use "Bug Report".
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: Describe your question in detail.
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you have tried
+      description: Did you read the README? What steps have you attempted?
+    validations:
+      required: false

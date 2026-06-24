@@ -1,0 +1,100 @@
+name: Update Stremio source
+
+# Scans Stremio's dl.strem.io CDN every 6 hours, discovers new iOS / tvOS
+# IPA versions, and adds them to the JSON sources. Auto-commits if there
+# are changes.
+
+on:
+  schedule:
+    # Her 6 saatte bir (UTC)
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      info_plist:
+        description: "Parse Info.plist from new IPAs (slower, ~100KB/IPA)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+  push:
+    # Skip re-running for our own commits (prevents an infinite loop)
+    paths-ignore:
+      - "**.md"
+      - "LICENSE"
+      - ".gitignore"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    name: Scan CDN and update JSONs
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Run updater (dry-run, log only)
+        id: dry
+        run: |
+          echo "::group::Dry run — log of discovered versions"
+          python3 stremio-updater.py --dry-run --verbose 2>&1 | tee dry-run.log
+          echo "::endgroup::"
+
+      - name: Run updater (apply changes)
+        id: apply
+        run: |
+          set -e
+          ARGS=(--platform all)
+          if [ "${{ inputs.info_plist }}" = "true" ]; then
+            ARGS+=(--info-plist)
+          fi
+          python3 stremio-updater.py "${ARGS[@]}"
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet stremio-ios.json stremio-tvos.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "## Diff summary" >> "$GITHUB_STEP_SUMMARY"
+            echo '```diff' >> "$GITHUB_STEP_SUMMARY"
+            git diff --stat stremio-ios.json stremio-tvos.json >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "stremio-altstore-bot"
+          git config user.email "bot@stremio-altstore.local"
+          git add stremio-ios.json stremio-tvos.json
+          # Detailed commit message
+          DIFFSTAT=$(git diff --cached --stat stremio-ios.json stremio-tvos.json | tail -1)
+          git commit -m "chore: update Stremio source" \
+                     -m "Auto-discovered new Stremio iOS / tvOS versions on dl.strem.io CDN." \
+                     -m "" \
+                     -m "$DIFFSTAT"
+          git push
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Updater failed. Check the logs."

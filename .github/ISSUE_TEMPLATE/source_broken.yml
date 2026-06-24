@@ -1,0 +1,58 @@
+name: Source broken / version missing
+description: An IPA link is dead or a new version is missing from the source
+title: "[Source] "
+labels: ["source", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue type is for **source links** and **version listings**.
+        For app install/signing issues please use "Bug Report".
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: What kind of issue?
+      options:
+        - "An existing IPA link returns 404"
+        - "A new Stremio version is out but not in the JSON"
+        - "Metadata in the JSON is wrong (size, date, version)"
+        - "Bundle identifier mismatch"
+        - "Other"
+    validations:
+      required: true
+
+  - type: input
+    id: url
+    attributes:
+      label: Broken / missing URL
+      description: Paste the full IPA URL if you have it.
+      placeholder: "https://dl.strem.io/apple/2.0.2b17/ios/stremio_iOS.ipa"
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: Version info
+      description: Stremio version, build number, platform
+      placeholder: "2.0.2 build 17 iOS"
+    validations:
+      required: false
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: HEAD response, screenshot, Stremio blog/Reddit reference, etc.
+    validations:
+      required: true
+
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: Where did you get this info? (Stremio blog, Reddit, GitHub release notes, etc.)
+      placeholder: "https://blog.stremio.com/..."
+    validations:
+      required: false

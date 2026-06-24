@@ -1,0 +1,32 @@
+name: Issue and PR configuration
+editor:
+  - markdown
+  - html
+contacts:
+  - name: GitHub Discussions
+    url: https://github.com/gorlev/stremio-altstore/discussions
+labels:
+  - name: bug
+    description: Something is broken
+    color: d73a4a
+  - name: source
+    description: Source URL or version listing related
+    color: fbca04
+  - name: enhancement
+    description: New feature or improvement
+    color: a2eeef
+  - name: question
+    description: More information needed
+    color: d876e3
+  - name: documentation
+    description: README or doc improvement
+    color: 0075ca
+  - name: "needs-triage"
+    description: Awaiting first review
+    color: fbca04
+  - name: "good first issue"
+    description: Suitable for new contributors
+    color: 7057ff
+  - name: "help wanted"
+    description: Help is welcome
+    color: 008672
