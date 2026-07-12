@@ -85,6 +85,7 @@
           "localizedDescription": "Stremio 2.0.0 (build 14).",
           "downloadURL": "https://dl.strem.io/apple/2.0.0b14/ios/stremio_iOS.ipa",
           "size": 78030906,
+          "sha256": "8bf6b174c9b1e9ce5cd7c7d01f9a94a87ac5a9285b250b9ace1b2b0b4270f0a4",
           "minOSVersion": "13.0"
         },
         {
@@ -94,6 +95,7 @@
           "localizedDescription": "Stremio 2.0.0 (build 13).",
           "downloadURL": "https://dl.strem.io/apple/2.0.0b13/ios/stremio_iOS.ipa",
           "size": 77726983,
+          "sha256": "3dd7fe41294a1f7706cb367978ba67a4729f4e668bc834fca52d616b92957197",
           "minOSVersion": "13.0"
         },
         {
@@ -103,6 +105,7 @@
           "localizedDescription": "Stremio 2.0.0 (build 11).",
           "downloadURL": "https://dl.strem.io/apple/2.0.0b11/ios/stremio_iOS.ipa",
           "size": 78020685,
+          "sha256": "61fd16aec965a6dd728b24a057e2c2d579477b9e6677b61166e29e1dd5c0fb1d",
           "minOSVersion": "13.0"
         }
       ]
@@ -130,6 +133,7 @@
           "localizedDescription": "Stremio Lite iOS v1.3.6 beta 7.",
           "downloadURL": "https://dl.strem.io/apple/1.3.6b7/ios/stremio_iOS.ipa",
           "size": 79430168,
+          "sha256": "f6731511f74567363032a937e22e432b069276c369489974d395eb4bbf837478",
           "minOSVersion": "13.0"
         }
       ]
