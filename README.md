@@ -180,6 +180,13 @@ Prefer to run your own source (own URL, own update schedule)? Fork and host it i
 
 The repo includes a GitHub Actions workflow that runs `stremio-updater.py` every 6 hours, discovers new Stremio versions, updates the JSON files, and auto-commits. With GitHub Pages enabled, new versions appear in your signing app within minutes.
 
+Each run also, in the same job:
+
+- **Backfills integrity hashes** — `scripts/add_hashes.py` computes the `sha256` of a few IPAs per run (newest first, budget-limited so it never risks the job's time limit), so every version eventually carries a hash that signing apps can verify the download against.
+- **Regenerates the version tables** in this README from the JSON.
+
+A separate **CDN health canary** (`scripts/check_cdn.py`) runs on the same schedule. Because the updater exits successfully whether it finds new versions or finds nothing, a broken CDN (a changed URL scheme, an outage, or a pulled build) would otherwise be invisible. The canary HEAD-checks the newest known IPA for each platform and **opens a GitHub issue** (deduplicated — one at a time) if the source may be serving dead downloads.
+
 To enable the workflow: **Actions → Update Stremio source → Enable workflow**.
 
 To trigger manually: **Actions → Update Stremio source → Run workflow**.
@@ -248,15 +255,20 @@ stremio-altstore/
 ├── stremio-ios.json            ← main source (iOS / iPadOS)
 ├── stremio-tvos.json           ← main source (tvOS)
 ├── stremio-updater.py          ← CDN scanner + JSON updater
+├── ipa_plist.py                ← shared HTTP-Range IPA Info.plist parser
+├── install.html                ← one-tap install landing page (GitHub Pages)
 ├── .github/
 │   ├── workflows/
-│   │   └── update.yml          ← auto-update every 6 hours
+│   │   └── update.yml          ← auto-update every 6 hours + CDN canary
 │   └── ISSUE_TEMPLATE/
 │       ├── bug_report.yml
 │       ├── feature_request.yml
 │       └── source_broken.yml
 └── scripts/
-    └── verify_bundle_ids.py    ← standalone IPA Info.plist verifier
+    ├── verify_bundle_ids.py    ← standalone IPA Info.plist verifier
+    ├── render_readme.py        ← regenerates the version tables above
+    ├── add_hashes.py           ← backfills sha256 integrity hashes (budgeted)
+    └── check_cdn.py            ← CDN health canary (opens an issue if broken)
 ```
 
 ### Why two JSON files?

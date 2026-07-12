@@ -67,6 +67,16 @@ jobs:
           fi
           python3 stremio-updater.py "${ARGS[@]}"
 
+      - name: Backfill IPA integrity hashes (budgeted)
+        # Adds sha256 to a few versions per run (newest first). Downloads full
+        # IPAs, so it is budget-limited and fully decoupled from the updater —
+        # a hashing hiccup must never block the source update, hence continue-on-error.
+        continue-on-error: true
+        env:
+          SHA256_BUDGET: "4"
+        run: |
+          python3 scripts/add_hashes.py
+
       - name: Regenerate README version tables
         run: |
           # Rebuilds the "Available versions" tables from the JSON sources.
@@ -104,3 +114,56 @@ jobs:
         if: failure()
         run: |
           echo "::error::Updater failed. Check the logs."
+
+  canary:
+    name: CDN health canary
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Periodic health check only — no need to run on every push. Runs
+    # independently of the update job so it still fires if that job fails,
+    # which is exactly when a silent CDN failure would otherwise hide.
+    if: github.event_name != 'push'
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run CDN health check
+        id: canary
+        run: |
+          set +e
+          python3 scripts/check_cdn.py > canary.txt 2>&1
+          echo "rc=$?" >> "$GITHUB_OUTPUT"
+          cat canary.txt
+
+      - name: Open an issue if the CDN looks broken
+        if: steps.canary.outputs.rc == '2'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Deduplicate by title marker so a persistent outage doesn't spam issues.
+          EXISTING=$(gh issue list --state open --search 'in:title [CDN-HEALTH]' --json number --jq 'length')
+          if [ "$EXISTING" -gt 0 ]; then
+            echo "An open [CDN-HEALTH] issue already exists — not opening a duplicate."
+            exit 0
+          fi
+          {
+            echo "The CDN health canary detected a problem. The updater can still exit 0 in"
+            echo "this state, so this automated issue is the alert that something needs a look."
+            echo ""
+            echo '```'
+            cat canary.txt
+            echo '```'
+            echo ""
+            echo "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          } > body.md
+          gh issue create \
+            --title "[CDN-HEALTH] Stremio CDN check failed — source may be serving dead downloads" \
+            --body-file body.md
