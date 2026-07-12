@@ -21,117 +21,14 @@ Exit codes:
 from __future__ import annotations
 
 import json
-import plistlib
-import struct
 import sys
-import urllib.error
-import urllib.request
-import zlib
 from pathlib import Path
-from typing import Optional
 
-UA = "stremio-altstore/verify_bundle_ids/1.0"
+sys.path.insert(0, str(Path(__file__).parent.parent))
+import ipa_plist  # noqa: E402
+from ipa_plist import get_main_app_info_plist  # noqa: E402
 
-
-def _u16(b: bytes, o: int) -> int:
-    return struct.unpack_from("<H", b, o)[0]
-
-
-def _u32(b: bytes, o: int) -> int:
-    return struct.unpack_from("<I", b, o)[0]
-
-
-def http_request(url: str, *, method: str = "GET",
-                 headers: Optional[dict] = None, timeout: int = 15):
-    h = {"User-Agent": UA}
-    if headers:
-        h.update(headers)
-    req = urllib.request.Request(url, headers=h, method=method)
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            return r.status, dict(r.headers), r.read()
-    except urllib.error.HTTPError as e:
-        return e.code, dict(e.headers or {}), None
-    except Exception:
-        return None, {}, None
-
-
-def get_main_app_info_plist(ipa_url: str) -> dict:
-    """Same logic as stremio-updater.py — extracts the main app Info.plist.
-
-    Returns: {"ok": True, "plist": {...}, "name": "..."} or {"ok": False, "error": "..."}
-    """
-    head = http_request(ipa_url, method="HEAD")
-    if head[0] != 200:
-        return {"ok": False, "error": f"HEAD {head[0]}"}
-
-    total = int(head[1].get("Content-Length") or 0)
-    if not total:
-        return {"ok": False, "error": "no Content-Length"}
-
-    tail_size = 64 * 1024 + 22
-    start = max(0, total - tail_size)
-    _, _, tail = http_request(ipa_url, headers={"Range": f"bytes={start}-{total - 1}"})
-    if not tail:
-        return {"ok": False, "error": "EOCD fetch"}
-    eocd_off = tail.rfind(b"PK\x05\x06")
-    if eocd_off < 0:
-        return {"ok": False, "error": "no EOCD"}
-    cd_offset = _u32(tail, eocd_off + 16)
-
-    cd_limit = min(total - cd_offset, 1024 * 1024)
-    _, _, cd = http_request(ipa_url, headers={"Range": f"bytes={cd_offset}-{cd_offset + cd_limit - 1}"})
-    if not cd:
-        return {"ok": False, "error": "CD fetch"}
-
-    apps = []
-    pos = 0
-    while pos < len(cd) - 46:
-        if cd[pos:pos + 4] != b"PK\x01\x02":
-            pos += 1
-            continue
-        name_len = _u16(cd, pos + 28)
-        extra_len = _u16(cd, pos + 30)
-        comment_len = _u16(cd, pos + 32)
-        local_off = _u32(cd, pos + 42)
-        comp_size = _u32(cd, pos + 20)
-        method = _u16(cd, pos + 10)
-        name = cd[pos + 46:pos + 46 + name_len].decode("utf-8", errors="ignore")
-        if name.endswith("/Info.plist") and ".app/" in name \
-                and "/Frameworks/" not in name and ".appex/" not in name:
-            apps.append((name, local_off, comp_size, method))
-        pos += 46 + name_len + extra_len + comment_len
-
-    if not apps:
-        return {"ok": False, "error": "no .app/Info.plist"}
-    apps.sort(key=lambda e: len(e[0]))
-    name, local_off, comp_size, method = apps[0]
-
-    _, _, lfh = http_request(ipa_url, headers={"Range": f"bytes={local_off}-{local_off + 1023}"})
-    if not lfh or lfh[:4] != b"PK\x03\x04":
-        return {"ok": False, "error": "LFH fetch"}
-    fname_len = _u16(lfh, 26)
-    extra_len = _u16(lfh, 28)
-    data_start = local_off + 30 + fname_len + extra_len
-
-    _, _, payload = http_request(ipa_url, headers={"Range": f"bytes={data_start}-{data_start + comp_size - 1}"})
-    if not payload:
-        return {"ok": False, "error": "payload fetch"}
-
-    if method == 8:
-        try:
-            raw = zlib.decompress(payload, -15)
-        except zlib.error as e:
-            return {"ok": False, "error": f"decompress: {e}"}
-    elif method == 0:
-        raw = payload
-    else:
-        return {"ok": False, "error": f"method {method}"}
-
-    try:
-        return {"ok": True, "plist": plistlib.loads(raw), "name": name}
-    except Exception as e:
-        return {"ok": False, "error": f"plist: {e}"}
+ipa_plist.USER_AGENT = "stremio-altstore/verify_bundle_ids/1.0"
 
 
 def verify(json_paths: list[Path], verbose: bool = False) -> int:
