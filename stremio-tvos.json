@@ -35,6 +35,7 @@
           "localizedDescription": "Stremio 2.0.3 (build 18).",
           "downloadURL": "https://dl.strem.io/apple/2.0.3b18/tvos/stremio_tvOS.ipa",
           "size": 73981587,
+          "sha256": "aa1a0a47136faa84b43d3c787e5b1b400f0cdca81bf4ded6c27839489d94c542",
           "minOSVersion": "13.0"
         },
         {
@@ -44,6 +45,7 @@
           "localizedDescription": "Stremio tvOS 2.0.2 (build 17).",
           "downloadURL": "https://dl.strem.io/apple/2.0.2b17/tvos/stremio_tvOS.ipa",
           "size": 73561363,
+          "sha256": "ee96a753e9f3777234d2d649d53d5db891f36397b413cb66a5832ebb8fd6b90c",
           "minOSVersion": "15.0"
         },
         {
