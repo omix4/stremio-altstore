@@ -28,6 +28,13 @@ on:
 permissions:
   contents: write
 
+# Serialize runs so two overlapping runs never race to push to main
+# (the classic "! [rejected] ... fetch first" failure). Queue rather than
+# cancel — an in-progress run may be mid-push and must finish cleanly.
+concurrency:
+  group: update-stremio-source
+  cancel-in-progress: false
+
 jobs:
   update:
     name: Scan CDN and update JSONs
@@ -108,7 +115,21 @@ jobs:
                      -m "Auto-discovered new Stremio iOS / tvOS versions on dl.strem.io CDN." \
                      -m "" \
                      -m "$DIFFSTAT"
-          git push
+          # Belt-and-suspenders on top of the concurrency guard: if something
+          # else pushed to main in the meantime (e.g. a manual push), rebase
+          # our commit on top and retry rather than failing the whole run.
+          for attempt in 1 2 3; do
+            if git push origin HEAD:main; then
+              echo "Pushed on attempt $attempt."
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Push still rejected after $attempt attempts."
+              exit 1
+            fi
+            echo "Push rejected — rebasing onto latest origin/main and retrying."
+            git pull --rebase origin main
+          done
 
       - name: Notify on failure
         if: failure()
