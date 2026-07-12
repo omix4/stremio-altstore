@@ -12,6 +12,7 @@ An **unofficial** AltStore-format source collection for Stremio iOS and tvOS, co
 - [Why does this repo exist?](#why-does-this-repo-exist)
 - [Compatible signing apps](#compatible-signing-apps)
 - [Quick start](#quick-start)
+- [Self-host your own copy](#self-host-your-own-copy)
 - [Available versions](#available-versions)
 - [Automatic updates](#automatic-updates)
 - [Manual updates](#manual-updates)
@@ -64,46 +65,64 @@ If your signing app supports adding a source by URL pointing to an `apps.json`-s
 
 ## Quick start
 
-### 1. Fork and enable GitHub Pages
+**No fork required.** This source is already hosted and auto-updated every 6 hours. Just add it to your signing app.
 
-1. Fork this repository
-2. Go to **Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: `main` / `(root)`**
-3. After a few minutes your sources will be live at:
-   ```
-   https://<your-github-username>.github.io/stremio-altstore/stremio-ios.json
-   https://<your-github-username>.github.io/stremio-altstore/stremio-tvos.json
-   ```
+### One-tap install
 
-### 2. Update `sourceURL` in the JSON files
+Open this page **on your iPhone / iPad** and tap your app — the source opens prefilled:
 
-Change the `sourceURL` field in both `stremio-ios.json` and `stremio-tvos.json` to your GitHub Pages URL:
+<p align="center">
+  <a href="https://gorlev.github.io/stremio-altstore/install.html">
+    <img src="https://img.shields.io/badge/%E2%9E%95%20Add%20to%20AltStore%20%2F%20SideStore-one%20tap-7b5bf5?style=for-the-badge&logo=apple&logoColor=white" alt="Add to AltStore / SideStore" height="42" />
+  </a>
+</p>
 
-```bash
-python3 stremio-updater.py \
-  --source-url-ios  "https://<your-github-username>.github.io/stremio-altstore/stremio-ios.json" \
-  --source-url-tvos "https://<your-github-username>.github.io/stremio-altstore/stremio-tvos.json"
-```
+Direct deep links (tap on-device, or paste into Safari):
 
-### 3. Add the source URL to your signing app
+| Platform | AltStore | SideStore |
+|---|---|---|
+| iOS / iPadOS | [Open in AltStore](altstore://source?url=https://gorlev.github.io/stremio-altstore/stremio-ios.json) | [Open in SideStore](sidestore://source?url=https://gorlev.github.io/stremio-altstore/stremio-ios.json) |
+| tvOS | [Open in AltStore](altstore://source?url=https://gorlev.github.io/stremio-altstore/stremio-tvos.json) | [Open in SideStore](sidestore://source?url=https://gorlev.github.io/stremio-altstore/stremio-tvos.json) |
 
-The exact menu path varies by app, but in all cases you paste the JSON URL into a "Sources" or "Repositories" section:
+> GitHub strips `altstore://`-style links in this README, so the table links only work once pasted into Safari. The **Add to AltStore / SideStore** button above routes through a landing page and works directly.
 
-| Platform | URL |
+### Or add the URL manually
+
+Works with **any** signing app (Feather, AltStore Classic/PAL, ESign, Scarlet, Sideloadly…). Paste the URL into the app's **Sources** / **Repositories** section:
+
+| Platform | Source URL |
 |---|---|
-| iOS / iPadOS | `https://<your-github-username>.github.io/stremio-altstore/stremio-ios.json` |
-| tvOS | `https://<your-github-username>.github.io/stremio-altstore/stremio-tvos.json` |
+| iOS / iPadOS | `https://gorlev.github.io/stremio-altstore/stremio-ios.json` |
+| tvOS | `https://gorlev.github.io/stremio-altstore/stremio-tvos.json` |
 
-Once added, Stremio will appear in the app's source list. Pick the version you want and tap **Get** (or the equivalent action) to download and sign.
+Once added, Stremio appears in the app's source list. Pick a version and tap **Get** (or the equivalent) to download and sign.
 
-### Alternative: raw GitHub URL (no Pages required)
+### Alternative: raw GitHub URL (no Pages)
 
 `sourceURL` also works with `raw.githubusercontent.com`:
 
 ```
-https://raw.githubusercontent.com/<your-github-username>/stremio-altstore/main/stremio-ios.json
+https://raw.githubusercontent.com/gorlev/stremio-altstore/main/stremio-ios.json
+https://raw.githubusercontent.com/gorlev/stremio-altstore/main/stremio-tvos.json
 ```
 
-Some signing apps require the `Content-Type: application/json` header, which GitHub Pages guarantees; raw URLs occasionally delay that header.
+Some signing apps require the `Content-Type: application/json` header, which GitHub Pages guarantees; raw URLs occasionally delay that header — prefer the `gorlev.github.io` URLs above.
+
+---
+
+## Self-host your own copy
+
+Prefer to run your own source (own URL, own update schedule)? Fork and host it in a couple of minutes:
+
+1. **Fork** this repository.
+2. Enable Pages: **Settings → Pages → Source: Deploy from a branch → Branch: `main` / `(root)`**. After a few minutes your sources are live at `https://<your-github-username>.github.io/stremio-altstore/stremio-{ios,tvos}.json`.
+3. Point `sourceURL` at your fork:
+   ```bash
+   python3 stremio-updater.py \
+     --source-url-ios  "https://<your-github-username>.github.io/stremio-altstore/stremio-ios.json" \
+     --source-url-tvos "https://<your-github-username>.github.io/stremio-altstore/stremio-tvos.json"
+   ```
+4. Commit the change. The included GitHub Actions workflow keeps your fork updated every 6 hours.
 
 ---
 
