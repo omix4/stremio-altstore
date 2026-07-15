@@ -26,7 +26,7 @@ This project and its participants are governed by the [Contributor Covenant 2.1]
 - 💡 **Feature ideas** — open an Issue to start a discussion
 - 🔍 **Code review** — review open PRs
 
-Good first issues are tagged [`good first issue`](https://github.com/gorlev/stremio-altstore/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+Good first issues are tagged [`good first issue`](https://github.com/omix4/stremio-altstore/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 
 ## Filing an issue
 
@@ -67,7 +67,7 @@ A good PR includes:
 
 ```bash
 # Clone the repo
-git clone https://github.com/gorlev/stremio-altstore.git
+git clone https://github.com/omix4/stremio-altstore.git
 cd stremio-altstore
 
 # Virtual environment (optional but recommended)
@@ -84,7 +84,7 @@ make format
 
 ## Testing
 
-There are no unit tests yet (the scripts are small and stdlib-based). PRs should include manual verification:
+The project has standard-library unit tests. Run them together with source validation:
 
 ```bash
 # Check what the updater would change
@@ -95,6 +95,10 @@ make update
 
 # Verify new IPAs against their Info.plists
 make verify
+
+# Run unit tests and validate both static sources
+make test
+make validate
 ```
 
 If you add new features, please add unit tests under a new `tests/` directory.

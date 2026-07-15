@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-This repository is a **data/file collection** (JSON sources + Python scripts). "Version" here refers to JSON-tracked IPA references rather than software releases. Instead of a traditional "supported versions" list, follow [GitHub Releases](https://github.com/gorlev/stremio-altstore/releases) for the freshness of IPA references.
+This repository is a **data/file collection** (JSON sources + Python scripts). "Version" here refers to JSON-tracked IPA references rather than software releases. Instead of a traditional "supported versions" list, follow [GitHub Releases](https://github.com/omix4/stremio-altstore/releases) for the freshness of IPA references.
 
 | Component | Status |
 |---|---|
@@ -18,7 +18,7 @@ This repository does not execute code directly; it only collects data and produc
 **Please DO NOT open a public Issue.** Instead:
 
 1. Use **GitHub Security Advisories**:
-   https://github.com/gorlev/stremio-altstore/security/advisories/new
+   https://github.com/omix4/stremio-altstore/security/advisories/new
 
 2. Or contact the maintainer directly via the email on their GitHub profile.
 
@@ -52,7 +52,9 @@ This repository has **zero third-party Python dependencies**. It uses only the P
 
 ### SHA256 verification
 
-The JSON files currently do not include SHA256 hashes. Feel free to contribute this as an enhancement — `updater.py --info-plist` already reads IPA contents, so adding hash computation is trivial.
+The JSON files include SHA-256 hashes on nested version records. The automated updater
+backfills hashes from the live `dl.strem.io` IPA files, and source validation rejects malformed
+digests before publishing.
 
 ## Acknowledgements
 

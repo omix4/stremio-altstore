@@ -32,5 +32,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stremio's official `dl.strem.io/apple/altstore/source.json` source cannot be parsed by most third-party signing apps because it uses Apple's encrypted App Store Connect manifest format. This repo is an unofficial port that points to the plain IPAs available on the same CDN.
 - Two separate JSON files are used because Stremio uses the same bundle identifier (`com.stremio.pal`) on both iOS and tvOS, and most signing apps do not allow two apps with the same `bundleIdentifier` inside one source.
 
-[Unreleased]: https://github.com/gorlev/stremio-altstore/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/gorlev/stremio-altstore/releases/tag/v1.0.0
+[Unreleased]: https://github.com/omix4/stremio-altstore/compare/8099dadc70ee38337558f8dd5feec21827fba10a...HEAD
+[1.0.0]: https://github.com/omix4/stremio-altstore/commit/8099dadc70ee38337558f8dd5feec21827fba10a

@@ -1,6 +1,6 @@
 # Stremio — Unofficial AltStore Source
 
-[![Update source](https://github.com/gorlev/stremio-altstore/actions/workflows/update.yml/badge.svg)](https://github.com/gorlev/stremio-altstore/actions/workflows/update.yml)
+[![Update source](https://github.com/omix4/stremio-altstore/actions/workflows/update.yml/badge.svg)](https://github.com/omix4/stremio-altstore/actions/workflows/update.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Stremio iOS versions](https://img.shields.io/badge/iOS-9%20versions-7055D9)](stremio-ios.json)
 [![Stremio tvOS versions](https://img.shields.io/badge/tvOS-5%20versions-7055D9)](stremio-tvos.json)
@@ -72,7 +72,7 @@ If your signing app supports adding a source by URL pointing to an `apps.json`-s
 Open this page **on your iPhone / iPad** and tap your app — the source opens prefilled:
 
 <p align="center">
-  <a href="https://gorlev.github.io/stremio-altstore/install.html">
+  <a href="https://omix4.github.io/stremio-altstore/install.html">
     <img src="https://img.shields.io/badge/%E2%9E%95%20Add%20to%20AltStore%20%2F%20SideStore-one%20tap-7b5bf5?style=for-the-badge&logo=apple&logoColor=white" alt="Add to AltStore / SideStore" height="42" />
   </a>
 </p>
@@ -81,8 +81,8 @@ Direct deep links (tap on-device, or paste into Safari):
 
 | Platform | AltStore | SideStore |
 |---|---|---|
-| iOS / iPadOS | [Open in AltStore](altstore://source?url=https://gorlev.github.io/stremio-altstore/stremio-ios.json) | [Open in SideStore](sidestore://source?url=https://gorlev.github.io/stremio-altstore/stremio-ios.json) |
-| tvOS | [Open in AltStore](altstore://source?url=https://gorlev.github.io/stremio-altstore/stremio-tvos.json) | [Open in SideStore](sidestore://source?url=https://gorlev.github.io/stremio-altstore/stremio-tvos.json) |
+| iOS / iPadOS | [Open in AltStore](altstore://source?url=https://omix4.github.io/stremio-altstore/stremio-ios.json) | [Open in SideStore](sidestore://source?url=https://omix4.github.io/stremio-altstore/stremio-ios.json) |
+| tvOS | [Open in AltStore](altstore://source?url=https://omix4.github.io/stremio-altstore/stremio-tvos.json) | [Open in SideStore](sidestore://source?url=https://omix4.github.io/stremio-altstore/stremio-tvos.json) |
 
 > GitHub strips `altstore://`-style links in this README, so the table links only work once pasted into Safari. The **Add to AltStore / SideStore** button above routes through a landing page and works directly.
 
@@ -92,8 +92,8 @@ Works with **any** signing app (Feather, AltStore Classic/PAL, ESign, Scarlet, S
 
 | Platform | Source URL |
 |---|---|
-| iOS / iPadOS | `https://gorlev.github.io/stremio-altstore/stremio-ios.json` |
-| tvOS | `https://gorlev.github.io/stremio-altstore/stremio-tvos.json` |
+| iOS / iPadOS | `https://omix4.github.io/stremio-altstore/stremio-ios.json` |
+| tvOS | `https://omix4.github.io/stremio-altstore/stremio-tvos.json` |
 
 Once added, Stremio appears in the app's source list. Pick a version and tap **Get** (or the equivalent) to download and sign.
 
@@ -102,11 +102,11 @@ Once added, Stremio appears in the app's source list. Pick a version and tap **G
 `sourceURL` also works with `raw.githubusercontent.com`:
 
 ```
-https://raw.githubusercontent.com/gorlev/stremio-altstore/main/stremio-ios.json
-https://raw.githubusercontent.com/gorlev/stremio-altstore/main/stremio-tvos.json
+https://raw.githubusercontent.com/omix4/stremio-altstore/main/stremio-ios.json
+https://raw.githubusercontent.com/omix4/stremio-altstore/main/stremio-tvos.json
 ```
 
-Some signing apps require the `Content-Type: application/json` header, which GitHub Pages guarantees; raw URLs occasionally delay that header — prefer the `gorlev.github.io` URLs above.
+Some signing apps require the `Content-Type: application/json` header, which GitHub Pages guarantees; raw URLs occasionally delay that header — prefer the `omix4.github.io` URLs above.
 
 ---
 
@@ -199,7 +199,7 @@ Configuration lives in `.github/workflows/update.yml`.
 
 ```bash
 # Clone the repo
-git clone https://github.com/gorlev/stremio-altstore.git
+git clone https://github.com/omix4/stremio-altstore.git
 cd stremio-altstore
 
 # Virtual environment (optional but recommended)

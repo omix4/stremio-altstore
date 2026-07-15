@@ -7,7 +7,7 @@
   "headerURL": "https://www.stremio.com/website/stremio-logo-small.png",
   "website": "https://www.stremio.com",
   "tintColor": "#7055D9",
-  "sourceURL": "https://gorlev.github.io/stremio-altstore/stremio-tvos.json",
+  "sourceURL": "https://omix4.github.io/stremio-altstore/stremio-tvos.json",
   "userInfo": {
     "name": "Unofficial AltStore Source",
     "role": "Community Mirror"
@@ -27,6 +27,12 @@
         "entitlements": [],
         "privacy": {}
       },
+      "version": "2.0.3",
+      "versionDate": "2026-07-09",
+      "versionDescription": "Stremio 2.0.3 (build 18).",
+      "downloadURL": "https://dl.strem.io/apple/2.0.3b18/tvos/stremio_tvOS.ipa",
+      "size": 73981587,
+      "minOSVersion": "13.0",
       "versions": [
         {
           "version": "2.0.3",
@@ -84,6 +90,12 @@
         "entitlements": [],
         "privacy": {}
       },
+      "version": "1.3.6",
+      "versionDate": "2026-01-31",
+      "versionDescription": "Stremio tvOS Lite 1.3.6 beta 7.",
+      "downloadURL": "https://dl.strem.io/apple/1.3.6b7/tvos/stremio_tvOS.ipa",
+      "size": 77258023,
+      "minOSVersion": "26.0",
       "versions": [
         {
           "version": "1.3.6",

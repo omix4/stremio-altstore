@@ -42,8 +42,10 @@ from typing import Iterable, Optional
 from xml.etree import ElementTree as ET
 
 sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent / "scripts"))
 import ipa_plist  # noqa: E402
 from ipa_plist import get_main_app_info_plist  # noqa: E402
+from source_compat import mirror_current_version, sort_versions  # noqa: E402
 
 CDN_BASE = "https://dl.strem.io/apple"
 USER_AGENT = f"stremio-altstore/{__file__}/1.0 (+github-actions)"
@@ -168,6 +170,9 @@ def merge_version(app: dict, version: str, build: int, meta: dict, info: Optiona
                 v["date"] = meta["date"]; changed = True
             if info and info.get("MinimumOSVersion") and v.get("minOSVersion") != info["MinimumOSVersion"]:
                 v["minOSVersion"] = info["MinimumOSVersion"]; changed = True
+            sort_versions(app)
+            if mirror_current_version(app):
+                changed = True
             return changed
 
     min_os = (info or {}).get("MinimumOSVersion") or "13.0"
@@ -181,10 +186,8 @@ def merge_version(app: dict, version: str, build: int, meta: dict, info: Optiona
         "minOSVersion": min_os,
     }
     app.setdefault("versions", []).append(new_v)
-    app["versions"].sort(
-        key=lambda v: (v.get("version", ""), int(v.get("buildVersion", "0"))),
-        reverse=True,
-    )
+    sort_versions(app)
+    mirror_current_version(app)
     return True
 
 
@@ -224,6 +227,10 @@ def process_platform(plat: str, source: dict, found: dict, *, do_info_plist: boo
             else:
                 new_count += 1
                 print(f"  [NEW] {plat}/{tag} -> added ({meta['size'] // 1024 // 1024} MB, {meta.get('date')})")
+    for app in (pal_app, lite_app):
+        sort_versions(app)
+        if mirror_current_version(app):
+            update_count += 1
     return new_count, update_count
 
 

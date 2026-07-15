@@ -4,7 +4,7 @@ editor:
   - html
 contacts:
   - name: GitHub Discussions
-    url: https://github.com/gorlev/stremio-altstore/discussions
+    url: https://github.com/omix4/stremio-altstore/discussions
 labels:
   - name: bug
     description: Something is broken

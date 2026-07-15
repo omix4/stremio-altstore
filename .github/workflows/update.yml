@@ -57,6 +57,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      - name: Run unit tests
+        run: |
+          python3 -m unittest discover -s tests -v
+
       - name: Run updater (dry-run, log only)
         id: dry
         run: |
@@ -83,6 +87,10 @@ jobs:
           SHA256_BUDGET: "4"
         run: |
           python3 scripts/add_hashes.py
+
+      - name: Validate source compatibility and safety
+        run: |
+          python3 scripts/validate_sources.py
 
       - name: Regenerate README version tables
         run: |

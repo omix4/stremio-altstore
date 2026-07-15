@@ -8,6 +8,8 @@
 #   make readme      — regenerate the README "Available versions" tables
 #   make hashes      — backfill sha256 integrity hashes (budgeted downloads)
 #   make canary      — CDN health check (newest IPAs still reachable?)
+#   make validate    — validate source compatibility and URL safety
+#   make test        — run standard-library unit tests
 #   make lint        — Python code quality checks
 #   make format      — format Python code
 #   make clean       — remove temporary files
@@ -23,7 +25,7 @@ GREEN := \033[32m
 YELLOW := \033[33m
 RESET := \033[0m
 
-.PHONY: help dry-run update verify readme hashes canary lint format clean set-urls ios tvos stats
+.PHONY: help dry-run update verify readme hashes canary validate test lint format clean set-urls ios tvos stats
 
 help:  ## Show this help message
 	@echo ""
@@ -64,6 +66,12 @@ hashes:  ## Backfill sha256 integrity hashes (set BUDGET=N to override per-run c
 canary:  ## CDN health check — are the newest known IPAs still reachable?
 	@echo "$(YELLOW)→ CDN health canary$(RESET)"
 	$(PYTHON) scripts/check_cdn.py
+
+validate:  ## Validate source compatibility, hashes, bundle IDs, and URLs
+	$(PYTHON) scripts/validate_sources.py
+
+test:  ## Run standard-library unit tests
+	$(PYTHON) -m unittest discover -s tests -v
 
 ios:  ## Update only the iOS source (pass DRY/UPDATE/VERIFY via ARGS)
 	@echo "$(YELLOW)→ iOS only$(RESET)"
