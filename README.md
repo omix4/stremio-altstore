@@ -67,26 +67,7 @@ If your signing app supports adding a source by URL pointing to an `apps.json`-s
 
 **No fork required.** This source is already hosted and auto-updated every 6 hours. Just add it to your signing app.
 
-### One-tap install
-
-Open this page **on your iPhone / iPad** and tap your app — the source opens prefilled:
-
-<p align="center">
-  <a href="https://omix4.github.io/stremio-altstore/install.html">
-    <img src="https://img.shields.io/badge/%E2%9E%95%20Add%20to%20AltStore%20%2F%20SideStore-one%20tap-7b5bf5?style=for-the-badge&logo=apple&logoColor=white" alt="Add to AltStore / SideStore" height="42" />
-  </a>
-</p>
-
-Direct deep links (tap on-device, or paste into Safari):
-
-| Platform | AltStore | SideStore |
-|---|---|---|
-| iOS / iPadOS | [Open in AltStore](altstore://source?url=https://omix4.github.io/stremio-altstore/stremio-ios.json) | [Open in SideStore](sidestore://source?url=https://omix4.github.io/stremio-altstore/stremio-ios.json) |
-| tvOS | [Open in AltStore](altstore://source?url=https://omix4.github.io/stremio-altstore/stremio-tvos.json) | [Open in SideStore](sidestore://source?url=https://omix4.github.io/stremio-altstore/stremio-tvos.json) |
-
-> GitHub strips `altstore://`-style links in this README, so the table links only work once pasted into Safari. The **Add to AltStore / SideStore** button above routes through a landing page and works directly.
-
-### Or add the URL manually
+### Add the URL manually
 
 Works with **any** signing app (Feather, AltStore Classic/PAL, ESign, Scarlet, Sideloadly…). Paste the URL into the app's **Sources** / **Repositories** section:
 
@@ -256,7 +237,6 @@ stremio-altstore/
 ├── stremio-tvos.json           ← main source (tvOS)
 ├── stremio-updater.py          ← CDN scanner + JSON updater
 ├── ipa_plist.py                ← shared HTTP-Range IPA Info.plist parser
-├── install.html                ← one-tap install landing page (GitHub Pages)
 ├── .github/
 │   ├── workflows/
 │   │   └── update.yml          ← auto-update every 6 hours + CDN canary
