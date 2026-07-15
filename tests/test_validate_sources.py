@@ -32,7 +32,7 @@ def version(version: str, build: str, platform: str = "ios") -> dict:
 def valid_source(platform: str = "ios") -> dict:
     filename = f"stremio-{platform}.json"
     data = {
-        "sourceURL": f"https://omix4.github.io/stremio-altstore/{filename}",
+        "sourceURL": f"https://repo.omix4.one/{filename}",
         "website": "https://www.stremio.com",
         "apps": [
             {

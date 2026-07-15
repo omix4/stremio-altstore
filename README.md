@@ -73,8 +73,8 @@ Works with **any** signing app (Feather, AltStore Classic/PAL, ESign, Scarlet, S
 
 | Platform | Source URL |
 |---|---|
-| iOS / iPadOS | `https://omix4.github.io/stremio-altstore/stremio-ios.json` |
-| tvOS | `https://omix4.github.io/stremio-altstore/stremio-tvos.json` |
+| iOS / iPadOS | `https://repo.omix4.one/stremio-ios.json` |
+| tvOS | `https://repo.omix4.one/stremio-tvos.json` |
 
 Once added, Stremio appears in the app's source list. Pick a version and tap **Get** (or the equivalent) to download and sign.
 
@@ -87,7 +87,7 @@ https://raw.githubusercontent.com/omix4/stremio-altstore/main/stremio-ios.json
 https://raw.githubusercontent.com/omix4/stremio-altstore/main/stremio-tvos.json
 ```
 
-Some signing apps require the `Content-Type: application/json` header, which GitHub Pages guarantees; raw URLs occasionally delay that header — prefer the `omix4.github.io` URLs above.
+Some signing apps require the `Content-Type: application/json` header, which the hosted source guarantees; raw URLs occasionally delay that header — prefer the `repo.omix4.one` URLs above.
 
 ---
 

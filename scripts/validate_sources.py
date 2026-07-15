@@ -15,11 +15,11 @@ from source_compat import CURRENT_FIELD_MAP, newest_version, version_key
 REPO = Path(__file__).resolve().parent.parent
 SOURCES = {
     "stremio-ios.json": {
-        "source_url": "https://omix4.github.io/stremio-altstore/stremio-ios.json",
+        "source_url": "https://repo.omix4.one/stremio-ios.json",
         "platform": "ios",
     },
     "stremio-tvos.json": {
-        "source_url": "https://omix4.github.io/stremio-altstore/stremio-tvos.json",
+        "source_url": "https://repo.omix4.one/stremio-tvos.json",
         "platform": "tvos",
     },
 }

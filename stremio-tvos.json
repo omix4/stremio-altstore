@@ -7,7 +7,7 @@
   "headerURL": "https://www.stremio.com/website/stremio-logo-small.png",
   "website": "https://www.stremio.com",
   "tintColor": "#7055D9",
-  "sourceURL": "https://omix4.github.io/stremio-altstore/stremio-tvos.json",
+  "sourceURL": "https://repo.omix4.one/stremio-tvos.json",
   "userInfo": {
     "name": "Unofficial AltStore Source",
     "role": "Community Mirror"
