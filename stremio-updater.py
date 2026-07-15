@@ -148,7 +148,7 @@ def get_or_create_app(source: dict, name: str, bundle_id: str, tint: str) -> dic
         "developerName": "Stremio",
         "subtitle": "Freedom to stream.",
         "localizedDescription": f"{name} — Stremio unofficial AltStore port.",
-        "iconURL": "https://www.stremio.com/website/stremio-logo-small.png",
+        "iconURL": "https://repo.omix4.one/assets/stremio-icon.png",
         "tintColor": tint,
         "category": "entertainment",
         "screenshots": [],

@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 from source_compat import CURRENT_FIELD_MAP, newest_version, version_key
 
 REPO = Path(__file__).resolve().parent.parent
+ICON_URL = "https://repo.omix4.one/assets/stremio-icon.png"
 SOURCES = {
     "stremio-ios.json": {
         "source_url": "https://repo.omix4.one/stremio-ios.json",
@@ -57,6 +58,10 @@ def validate_source(data: object, filename: str) -> list[str]:
 
     if data.get("sourceURL") != config["source_url"]:
         errors.append(f"{filename}.sourceURL: expected {config['source_url']}")
+    if data.get("iconURL") != ICON_URL:
+        errors.append(f"{filename}.iconURL: expected {ICON_URL}")
+    if data.get("headerURL") != ICON_URL:
+        errors.append(f"{filename}.headerURL: expected {ICON_URL}")
     _validate_all_urls(data, filename, errors)
 
     apps = data.get("apps")
@@ -74,6 +79,8 @@ def validate_source(data: object, filename: str) -> list[str]:
         if not isinstance(app, dict):
             errors.append(f"{context}: must be an object")
             continue
+        if app.get("iconURL") != ICON_URL:
+            errors.append(f"{context}.iconURL: expected {ICON_URL}")
         versions = app.get("versions")
         if not isinstance(versions, list) or not versions:
             errors.append(f"{context}.versions: must be a non-empty array")

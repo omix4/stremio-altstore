@@ -237,6 +237,8 @@ stremio-altstore/
 ├── stremio-tvos.json           ← main source (tvOS)
 ├── stremio-updater.py          ← CDN scanner + JSON updater
 ├── ipa_plist.py                ← shared HTTP-Range IPA Info.plist parser
+├── assets/
+│   └── stremio-icon.png         ← self-hosted source and app icon
 ├── .github/
 │   ├── workflows/
 │   │   └── update.yml          ← auto-update every 6 hours + CDN canary

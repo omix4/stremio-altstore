@@ -9,7 +9,7 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
 
 from source_compat import mirror_current_version  # noqa: E402
-from validate_sources import validate_file, validate_source  # noqa: E402
+from validate_sources import ICON_URL, validate_file, validate_source  # noqa: E402
 
 
 def version(version: str, build: str, platform: str = "ios") -> dict:
@@ -34,17 +34,19 @@ def valid_source(platform: str = "ios") -> dict:
     data = {
         "sourceURL": f"https://repo.omix4.one/{filename}",
         "website": "https://www.stremio.com",
+        "iconURL": ICON_URL,
+        "headerURL": ICON_URL,
         "apps": [
             {
                 "name": "Stremio",
                 "bundleIdentifier": "com.stremio.pal",
-                "iconURL": "https://www.stremio.com/icon.png",
+                "iconURL": ICON_URL,
                 "versions": [version("2.10.0", "11", platform)],
             },
             {
                 "name": "Stremio Lite",
                 "bundleIdentifier": "com.stremio.ios",
-                "iconURL": "https://www.stremio.com/icon.png",
+                "iconURL": ICON_URL,
                 "versions": [version("1.4.0", "12", platform)],
             },
         ],
@@ -65,6 +67,13 @@ class ValidateSourcesTests(unittest.TestCase):
         errors = validate_source(data, "stremio-ios.json")
         self.assertTrue(any("HTTPS" in error for error in errors))
         self.assertTrue(any("host must be dl.strem.io" in error for error in errors))
+
+    def test_rejects_noncanonical_icons(self):
+        data = valid_source()
+        data["iconURL"] = "https://www.stremio.com/missing.png"
+        data["apps"][0]["iconURL"] = "https://www.stremio.com/missing.png"
+        errors = validate_source(data, "stremio-ios.json")
+        self.assertEqual(sum("iconURL: expected" in error for error in errors), 2)
 
     def test_rejects_bad_hash_bundle_and_stale_mirror(self):
         data = valid_source()
