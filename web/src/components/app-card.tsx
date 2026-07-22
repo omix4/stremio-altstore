@@ -31,9 +31,9 @@ export function AppCard({ app, definition }: AppCardProps) {
               {app.bundleIdentifier === "com.stremio.ios" ? <Badge variant="secondary">Legacy</Badge> : null}
             </div>
             <CardDescription>{app.subtitle || app.localizedDescription}</CardDescription>
-            <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <div className="mt-2 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
               <Box className="size-3" aria-hidden="true" />
-              <code>{app.bundleIdentifier}</code>
+              <code className="min-w-0 break-all">{app.bundleIdentifier}</code>
             </div>
           </div>
         </div>

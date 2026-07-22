@@ -94,7 +94,7 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <header className="border-b bg-card/70">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-3 py-3 sm:gap-4 sm:px-6 sm:py-4 lg:px-8">
           <a href="./" className="flex items-center gap-3" aria-label="Stremio IPA Repository home">
             <img src="./assets/stremio-icon.png" alt="" className="size-9 rounded-lg" />
             <div>
@@ -111,10 +111,10 @@ export default function App() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+      <main className="mx-auto min-w-0 max-w-6xl px-3 py-7 sm:px-6 sm:py-14 lg:px-8">
         <section className="max-w-3xl" aria-labelledby="page-title">
-          <Badge variant="outline" className="mb-4">Unofficial community source</Badge>
-          <h1 id="page-title" className="text-3xl font-semibold tracking-tight sm:text-4xl">
+          <Badge variant="outline" className="mb-3 sm:mb-4">Unofficial community source</Badge>
+          <h1 id="page-title" className="text-2xl font-semibold tracking-tight sm:text-4xl">
             Install Stremio on your Apple devices
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
@@ -123,7 +123,7 @@ export default function App() {
           </p>
         </section>
 
-        <section className="mt-10" aria-labelledby="sources-title">
+        <section className="mt-8 sm:mt-10" aria-labelledby="sources-title">
           <div className="mb-5 flex items-end justify-between gap-4">
             <div>
               <h2 id="sources-title" className="text-xl font-semibold tracking-tight">Add a source</h2>
@@ -143,7 +143,7 @@ export default function App() {
           </p>
         </section>
 
-        <Separator className="my-10" />
+        <Separator className="my-8 sm:my-10" />
 
         <section aria-labelledby="downloads-title">
           <div className="mb-5">
@@ -182,7 +182,7 @@ export default function App() {
       </main>
 
       <footer className="border-t">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-8 text-xs text-muted-foreground sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-3 py-6 text-xs text-muted-foreground sm:px-6 sm:py-8 lg:px-8">
           <p>This is an unofficial community mirror and is not affiliated with or supported by Stremio.</p>
           <p>IPAs are downloaded from Stremio&apos;s public CDN and must be signed before installation.</p>
         </div>
