@@ -27,6 +27,24 @@ SOURCES = {
 EXPECTED_BUNDLES = {"com.stremio.pal", "com.stremio.ios"}
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 URL_FIELDS = {"sourceURL", "website", "iconURL", "headerURL", "downloadURL"}
+SOURCE_STRING_FIELDS = {"name"}
+APP_STRING_FIELDS = {
+    "name",
+    "bundleIdentifier",
+    "developerName",
+    "localizedDescription",
+    "iconURL",
+}
+LEGACY_APP_STRING_FIELDS = {"version", "versionDate", "downloadURL"}
+VERSION_STRING_FIELDS = {"version", "buildVersion", "date", "downloadURL"}
+
+
+def _require_nonempty_strings(
+    value: dict, fields: set[str], context: str, errors: list[str]
+) -> None:
+    for field in sorted(fields):
+        if not isinstance(value.get(field), str) or not value[field].strip():
+            errors.append(f"{context}.{field}: must be a non-empty string")
 
 
 def _validate_https(value: object, context: str, errors: list[str]) -> None:
@@ -56,6 +74,7 @@ def validate_source(data: object, filename: str) -> list[str]:
     if not isinstance(data, dict):
         return [f"{filename}: source root must be an object"]
 
+    _require_nonempty_strings(data, SOURCE_STRING_FIELDS, filename, errors)
     if data.get("sourceURL") != config["source_url"]:
         errors.append(f"{filename}.sourceURL: expected {config['source_url']}")
     if data.get("iconURL") != ICON_URL:
@@ -81,10 +100,55 @@ def validate_source(data: object, filename: str) -> list[str]:
             continue
         if app.get("iconURL") != ICON_URL:
             errors.append(f"{context}.iconURL: expected {ICON_URL}")
+        _require_nonempty_strings(app, APP_STRING_FIELDS, context, errors)
+        _require_nonempty_strings(app, LEGACY_APP_STRING_FIELDS, context, errors)
+        if (
+            not isinstance(app.get("size"), int)
+            or isinstance(app.get("size"), bool)
+            or app["size"] <= 0
+        ):
+            errors.append(f"{context}.size: must be a positive integer")
+        permissions = app.get("appPermissions")
+        if not isinstance(permissions, dict):
+            errors.append(f"{context}.appPermissions: must be an object")
+        else:
+            entitlements = permissions.get("entitlements")
+            privacy = permissions.get("privacy")
+            if not isinstance(entitlements, list) or not all(
+                isinstance(item, str) and item for item in entitlements
+            ):
+                errors.append(
+                    f"{context}.appPermissions.entitlements: "
+                    "must be an array of strings"
+                )
+            if not isinstance(privacy, dict) or not all(
+                isinstance(key, str)
+                and key
+                and isinstance(value, str)
+                and value
+                for key, value in privacy.items()
+            ):
+                errors.append(
+                    f"{context}.appPermissions.privacy: must be a dictionary of strings"
+                )
         versions = app.get("versions")
         if not isinstance(versions, list) or not versions:
             errors.append(f"{context}.versions: must be a non-empty array")
             continue
+        for vindex, version in enumerate(versions):
+            vcontext = f"{context}.versions[{vindex}]"
+            if not isinstance(version, dict):
+                errors.append(f"{vcontext}: must be an object")
+                continue
+            _require_nonempty_strings(
+                version, VERSION_STRING_FIELDS, vcontext, errors
+            )
+            if (
+                not isinstance(version.get("size"), int)
+                or isinstance(version.get("size"), bool)
+                or version["size"] <= 0
+            ):
+                errors.append(f"{vcontext}.size: must be a positive integer")
         try:
             keys = [version_key(version) for version in versions]
             latest = newest_version(app)
@@ -92,18 +156,20 @@ def validate_source(data: object, filename: str) -> list[str]:
             errors.append(f"{context}.versions: {exc}")
             continue
         if keys != sorted(keys, reverse=True):
-            errors.append(f"{context}.versions: must be sorted newest-first numerically")
+            errors.append(
+                f"{context}.versions: must be sorted newest-first numerically"
+            )
 
         for app_field, version_field in CURRENT_FIELD_MAP.items():
             if app.get(app_field) != latest.get(version_field):
                 errors.append(
-                    f"{context}.{app_field}: must mirror newest versions[].{version_field}"
+                    f"{context}.{app_field}: must mirror newest "
+                    f"versions[].{version_field}"
                 )
 
         for vindex, version in enumerate(versions):
             vcontext = f"{context}.versions[{vindex}]"
             if not isinstance(version, dict):
-                errors.append(f"{vcontext}: must be an object")
                 continue
             url = version.get("downloadURL")
             parsed = urlparse(url) if isinstance(url, str) else None
@@ -134,9 +200,15 @@ def validate_file(path: Path) -> list[str]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("files", nargs="*", help="Source files (defaults to both canonical files)")
+    ap.add_argument(
+        "files", nargs="*", help="Source files (defaults to both canonical files)"
+    )
     args = ap.parse_args()
-    paths = [Path(value) for value in args.files] if args.files else [REPO / f for f in SOURCES]
+    paths = (
+        [Path(value) for value in args.files]
+        if args.files
+        else [REPO / filename for filename in SOURCES]
+    )
     errors = [error for path in paths for error in validate_file(path)]
     if errors:
         for error in errors:

@@ -27,13 +27,23 @@
         "entitlements": [],
         "privacy": {}
       },
-      "version": "2.0.5",
+      "version": "2.0.6",
       "versionDate": "2026-07-22",
-      "versionDescription": "Stremio 2.0.5 (build 20).",
-      "downloadURL": "https://dl.strem.io/apple/2.0.5b20/tvos/stremio_tvOS.ipa",
-      "size": 73987005,
-      "minOSVersion": "13.0",
+      "versionDescription": "feat: new desktop like UI for player and navigation on iPadOS",
+      "downloadURL": "https://dl.strem.io/apple/2.0.6b21/tvos/stremio_tvOS.ipa",
+      "size": 73987585,
+      "minOSVersion": "15.0",
       "versions": [
+        {
+          "version": "2.0.6",
+          "buildVersion": "21",
+          "date": "2026-07-22",
+          "localizedDescription": "feat: new desktop like UI for player and navigation on iPadOS",
+          "downloadURL": "https://dl.strem.io/apple/2.0.6b21/tvos/stremio_tvOS.ipa",
+          "size": 73987585,
+          "sha256": "00f318ee5b6c6f1cbf36a55bd31ddcb616bc1a773c0cd3cea0bea154340ef8b1",
+          "minOSVersion": "15.0"
+        },
         {
           "version": "2.0.5",
           "buildVersion": "20",
@@ -47,8 +57,8 @@
         {
           "version": "2.0.3",
           "buildVersion": "18",
-          "date": "2026-07-09",
-          "localizedDescription": "Stremio 2.0.3 (build 18).",
+          "date": "2026-07-11",
+          "localizedDescription": "feat: native Stremio app for macOS\nfeat: automatic macOS updates with delta update support\nfeat: update notices for outdated app versions\nfeat: experimental Picture in Picture support on macOS and tvOS\nfeat: improved KSPlayer Picture in Picture support\nfeat: privacy-friendly crash analytics, configurable from settings\nfeat: bottom toast notifications\nfeat: OLED dark background setting\n\nPlayback Fixes\nfix: show VLC buffering state correctly\nfix: prevent VLC playback startup and end-of-video deadlocks\nfix: prevent seek controls from getting stuck\nfix: fix crashes while seeking\nfix: keep video visible when replacing KSPlayer media\nfix: show an error message when playback fails\nfix: avoid lockups after autoplay finishes a video\nfix: clean up player animations and timers after closing playback\nfix: keep profile lock from interrupting active playback or Picture in Picture\nfix: repair Infuse callback handling\n\nInterface Fixes\nfix: stabilize Settings layout, backgrounds, separators, and account rows\nfix: improve loading and playback-error overlay layout\nfix: improve filter button row edge fade",
           "downloadURL": "https://dl.strem.io/apple/2.0.3b18/tvos/stremio_tvOS.ipa",
           "size": 73981587,
           "sha256": "aa1a0a47136faa84b43d3c787e5b1b400f0cdca81bf4ded6c27839489d94c542",

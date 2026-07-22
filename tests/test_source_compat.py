@@ -4,6 +4,7 @@ import importlib.util
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
@@ -92,9 +93,22 @@ class SourceCompatTests(unittest.TestCase):
                 },
             }
         }
-        new_count, _ = updater.process_platform(
-            "ios", source, found, do_info_plist=False, verbose=False
-        )
+        def plist_for(url):
+            tag = url.split("/")[-3]
+            version, build = updater.parse_version_tag(tag)
+            return {
+                "ok": True,
+                "plist": {
+                    "CFBundleShortVersionString": version,
+                    "CFBundleVersion": str(build),
+                    "MinimumOSVersion": "13.0",
+                },
+            }
+
+        with patch.object(updater, "get_main_app_info_plist", side_effect=plist_for):
+            new_count, _ = updater.process_platform(
+                "ios", source, found, do_info_plist=False, verbose=False
+            )
         self.assertEqual(new_count, 2)
         pal, lite = source["apps"]
         self.assertEqual(pal["versions"][0]["version"], "2.10.0")

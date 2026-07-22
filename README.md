@@ -2,10 +2,10 @@
 
 [![Update source](https://github.com/omix4/stremio-altstore/actions/workflows/update.yml/badge.svg)](https://github.com/omix4/stremio-altstore/actions/workflows/update.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Stremio iOS versions](https://img.shields.io/badge/iOS-10%20versions-7055D9)](stremio-ios.json)
-[![Stremio tvOS versions](https://img.shields.io/badge/tvOS-6%20versions-7055D9)](stremio-tvos.json)
+[![Stremio iOS versions](https://img.shields.io/badge/iOS-11%20versions-7055D9)](stremio-ios.json)
+[![Stremio tvOS versions](https://img.shields.io/badge/tvOS-7%20versions-7055D9)](stremio-tvos.json)
 
-An **unofficial** AltStore-format source collection for Stremio iOS and tvOS, compatible with any signing app that consumes the standard AltStore source format — Feather, AltStore Classic, AltStore PAL, ESign, Scarlet, Sideloadly, and others. Stremio's official source at [`dl.strem.io/apple/altstore/source.json`](https://dl.strem.io/apple/altstore/source.json) cannot be parsed by most third-party signing apps because it uses Apple's encrypted App Store Connect manifest format — this repo publishes standard AltStore-format JSON sources that point to Stremio's plain IPA artifacts.
+An **unofficial** AltStore-format source collection for Stremio iOS and tvOS, compatible with signing apps that consume AltStore-style **plain IPA** sources — FlareStore, Feather, SideStore, AltStore Classic, ESign, Scarlet, KSign, and others. Stremio's official source at [`dl.strem.io/apple/altstore/source.json`](https://dl.strem.io/apple/altstore/source.json) cannot be parsed by most third-party signing apps because it uses Apple's encrypted App Store Connect marketplace format — this repo publishes standard source JSON that points to Stremio's plain IPA artifacts.
 
 ## Table of contents
 
@@ -31,7 +31,7 @@ Starting in June 2026, Stremio moved iOS distribution entirely to Apple's **App 
 2. Distributes a `manifest.json` metadata file
 3. Grants the decryption key only to AltStore PAL
 
-Most third-party signing apps (Feather, ESign, Scarlet, Sideloadly, etc.) cannot break this encryption, so importing the official source results in "no apps", "invalid format", or "failed to download" errors.
+Most third-party signing apps (FlareStore, Feather, SideStore, ESign, Scarlet, etc.) cannot use that encrypted distribution, so importing the official source results in "no apps", "invalid format", or "failed to download" errors.
 
 However, Stremio keeps the plain IPA files **publicly available on the same CDN**:
 
@@ -53,11 +53,13 @@ This repo discovers those IPAs and writes them into standard AltStore-format JSO
 Any signing app that consumes the standard AltStore source format can use this repo. Tested or known-compatible apps include:
 
 - **[Feather](https://github.com/claration/Feather)** — open-source on-device signer
+- **[SideStore](https://sidestore.io)** — fully compatible with AltStore sources
 - **[AltStore Classic](https://altstore.io)** — the original desktop-paired signer (requires AltServer on a Mac/PC)
-- **[AltStore PAL](https://altstore.io)** — AltStore's European Union alternative marketplace
+- **[FlareStore](https://flarestore.app)** — repository browser and web signer
 - **[ESign](https://github.com/jakepoz/esign)** — popular on-device signer
 - **[Scarlet](https://usescarlet.com)** — on-device IPA installer
-- **[Sideloadly](https://sideloadly.io)** — desktop-based sideloader with source support
+
+AltStore PAL uses Apple's notarized ADP/marketplace format rather than plain IPA downloads, so use Stremio's official PAL source there. Sideloadly can install an IPA downloaded from the source, but it does not consume the repository URL itself.
 
 If your signing app supports adding a source by URL pointing to an `apps.json`-style document, it will work. If you find an app that does not work, please open an issue.
 
@@ -69,7 +71,7 @@ If your signing app supports adding a source by URL pointing to an `apps.json`-s
 
 ### Add the URL manually
 
-Works with **any** signing app (Feather, AltStore Classic/PAL, ESign, Scarlet, Sideloadly…). Paste the URL into the app's **Sources** / **Repositories** section:
+Works with signing apps that accept AltStore-style plain-IPA sources (FlareStore, Feather, SideStore, AltStore Classic, ESign, Scarlet, KSign…). Paste the URL into the app's **Sources** / **Repositories** section:
 
 | Platform | Source URL |
 |---|---|
@@ -117,9 +119,10 @@ Prefer to run your own source (own URL, own update schedule)? Fork and host it i
 
 | Version | Build | Date | Size | Download |
 |---|---|---|---|---|
+| 2.0.6 | 21 | 2026-07-22 | 72 MB | [IPA](https://dl.strem.io/apple/2.0.6b21/ios/stremio_iOS.ipa) |
 | 2.0.5 | 20 | 2026-07-22 | 72 MB | [IPA](https://dl.strem.io/apple/2.0.5b20/ios/stremio_iOS.ipa) |
 | 2.0.4 | 19 | 2026-07-10 | 72 MB | [IPA](https://dl.strem.io/apple/2.0.4b19/ios/stremio_iOS.ipa) |
-| 2.0.3 | 18 | 2026-07-09 | 72 MB | [IPA](https://dl.strem.io/apple/2.0.3b18/ios/stremio_iOS.ipa) |
+| 2.0.3 | 18 | 2026-07-11 | 72 MB | [IPA](https://dl.strem.io/apple/2.0.3b18/ios/stremio_iOS.ipa) |
 | 2.0.2 | 17 | 2026-06-19 | 74 MB | [IPA](https://dl.strem.io/apple/2.0.2b17/ios/stremio_iOS.ipa) |
 | 2.0.1 | 16 | 2026-06-16 | 74 MB | [IPA](https://dl.strem.io/apple/2.0.1b16/ios/stremio_iOS.ipa) |
 | 2.0.1 | 15 | 2026-06-15 | 74 MB | [IPA](https://dl.strem.io/apple/2.0.1b15/ios/stremio_iOS.ipa) |
@@ -139,8 +142,9 @@ Prefer to run your own source (own URL, own update schedule)? Fork and host it i
 
 | Version | Build | Date | Size | Download |
 |---|---|---|---|---|
+| 2.0.6 | 21 | 2026-07-22 | 70 MB | [IPA](https://dl.strem.io/apple/2.0.6b21/tvos/stremio_tvOS.ipa) |
 | 2.0.5 | 20 | 2026-07-22 | 70 MB | [IPA](https://dl.strem.io/apple/2.0.5b20/tvos/stremio_tvOS.ipa) |
-| 2.0.3 | 18 | 2026-07-09 | 70 MB | [IPA](https://dl.strem.io/apple/2.0.3b18/tvos/stremio_tvOS.ipa) |
+| 2.0.3 | 18 | 2026-07-11 | 70 MB | [IPA](https://dl.strem.io/apple/2.0.3b18/tvos/stremio_tvOS.ipa) |
 | 2.0.2 | 17 | 2026-06-19 | 70 MB | [IPA](https://dl.strem.io/apple/2.0.2b17/tvos/stremio_tvOS.ipa) |
 | 2.0.1 | 16 | 2026-06-16 | 70 MB | [IPA](https://dl.strem.io/apple/2.0.1b16/tvos/stremio_tvOS.ipa) |
 | 2.0.1 | 15 | 2026-06-15 | 70 MB | [IPA](https://dl.strem.io/apple/2.0.1b15/tvos/stremio_tvOS.ipa) |
@@ -161,7 +165,7 @@ Prefer to run your own source (own URL, own update schedule)? Fork and host it i
 
 ## Automatic updates
 
-The repo includes a GitHub Actions workflow that runs `stremio-updater.py` every 6 hours, discovers new Stremio versions, updates the JSON files, and auto-commits. With GitHub Pages enabled, new versions appear in your signing app within minutes.
+The repo includes a GitHub Actions workflow that runs `stremio-updater.py` every 6 hours, discovers new Stremio versions, updates the JSON files, and auto-commits. With GitHub Pages enabled, new versions appear in your signing app within minutes. Discovery uses a small pattern-based search frontier against the plain IPA CDN, plus Stremio's official AltStore PAL source as an optional metadata and exact-version hint after Apple notarization completes.
 
 Each run also, in the same job:
 
@@ -266,9 +270,11 @@ You can add both to your signing app; the appropriate one shows up per device ty
 
 ### How the updater works
 
-1. **`scan_cdn`**: Probes `dl.strem.io/apple/{semver}b{build}/{ios|tvos}/...` URLs in parallel with a `ThreadPoolExecutor` (16 workers). Scans the last known build + buffer range.
-2. **`get_main_app_info_plist`**: Fetches only the relevant chunks of the IPA via HTTP `Range` requests (ZIP EOCD + Central Directory + compressed Info.plist), parses binary or XML plist with `plistlib`. Typical download: < 5 KB per IPA. The function filters out framework and appex Info.plists, keeping only the main app entry.
-3. **`process_platform`**: Adds discovered versions to the JSON or refreshes metadata of existing ones. Keeps versions sorted by (version, build) descending.
+1. **Candidate generation**: Builds independent PAL and Lite frontiers from the newest local version/build. It checks only the next three builds and plausible same-version, patch, minor, and PAL major transitions — at most 54 normal HEAD requests across both platforms.
+2. **Official reconciliation**: Reads Stremio's official PAL source once as an optional hint. Exact version/build pairs and compatible release metadata are merged into the scan, but encrypted marketplace URLs, sizes, and permissions are never copied into this plain-IPA source.
+3. **`scan_cdn`**: Probes the deduplicated `dl.strem.io/apple/{semver}b{build}/{ios|tvos}/...` candidates in parallel with a `ThreadPoolExecutor` (16 workers). Only HTTP 200 plain IPA artifacts are accepted.
+4. **`get_main_app_info_plist`**: Fetches only the relevant chunks of each new IPA via HTTP `Range` requests and verifies its embedded version/build before publication.
+5. **`process_platform`**: Adds verified releases or enriches earlier CDN discoveries with official patch notes, dates, and compatible metadata when they become available.
 
 ---
 

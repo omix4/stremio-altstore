@@ -32,6 +32,7 @@ def version(version: str, build: str, platform: str = "ios") -> dict:
 def valid_source(platform: str = "ios") -> dict:
     filename = f"stremio-{platform}.json"
     data = {
+        "name": "Stremio test source",
         "sourceURL": f"https://repo.omix4.one/{filename}",
         "website": "https://www.stremio.com",
         "iconURL": ICON_URL,
@@ -40,13 +41,19 @@ def valid_source(platform: str = "ios") -> dict:
             {
                 "name": "Stremio",
                 "bundleIdentifier": "com.stremio.pal",
+                "developerName": "Stremio",
+                "localizedDescription": "Stremio test app",
                 "iconURL": ICON_URL,
+                "appPermissions": {"entitlements": [], "privacy": {}},
                 "versions": [version("2.10.0", "11", platform)],
             },
             {
                 "name": "Stremio Lite",
                 "bundleIdentifier": "com.stremio.ios",
+                "developerName": "Stremio",
+                "localizedDescription": "Stremio Lite test app",
                 "iconURL": ICON_URL,
+                "appPermissions": {"entitlements": [], "privacy": {}},
                 "versions": [version("1.4.0", "12", platform)],
             },
         ],
@@ -84,6 +91,49 @@ class ValidateSourcesTests(unittest.TestCase):
         self.assertTrue(any("expected exactly bundle IDs" in error for error in errors))
         self.assertTrue(any("64 lowercase hex" in error for error in errors))
         self.assertTrue(any("must mirror newest" in error for error in errors))
+
+    def test_rejects_missing_modern_and_legacy_required_fields(self):
+        data = valid_source()
+        del data["name"]
+        del data["apps"][0]["developerName"]
+        del data["apps"][0]["versionDate"]
+        del data["apps"][0]["versions"][0]["buildVersion"]
+        errors = validate_source(data, "stremio-ios.json")
+        self.assertTrue(
+            any(".name: must be a non-empty string" in error for error in errors)
+        )
+        self.assertTrue(
+            any(
+                ".developerName: must be a non-empty string" in error
+                for error in errors
+            )
+        )
+        self.assertTrue(
+            any(
+                ".versionDate: must be a non-empty string" in error
+                for error in errors
+            )
+        )
+        self.assertTrue(any(".buildVersion" in error for error in errors))
+
+    def test_rejects_invalid_permissions_and_sizes(self):
+        data = valid_source()
+        data["apps"][0]["appPermissions"] = {
+            "entitlements": "not-an-array",
+            "privacy": [],
+        }
+        data["apps"][0]["size"] = 0
+        data["apps"][0]["versions"][0]["size"] = "123"
+        errors = validate_source(data, "stremio-ios.json")
+        self.assertTrue(
+            any("entitlements: must be an array" in error for error in errors)
+        )
+        self.assertTrue(
+            any("privacy: must be a dictionary" in error for error in errors)
+        )
+        self.assertEqual(
+            sum("size: must be a positive integer" in error for error in errors), 2
+        )
 
     def test_rejects_malformed_source_file(self):
         path = Path("stremio-ios.json")
