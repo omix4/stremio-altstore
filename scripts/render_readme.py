@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-render_readme.py — regenerate the "Available versions" tables in README.md
+render_readme.py: regenerate the "Available versions" tables in README.md
 
 Reads stremio-ios.json and stremio-tvos.json and rewrites ONLY the block
 between the markers:
@@ -8,7 +8,7 @@ between the markers:
     <!-- BEGIN:AVAILABLE_VERSIONS ... -->
     <!-- END:AVAILABLE_VERSIONS -->
 
-Everything else in README.md is left untouched. No network access — the
+Everything else in README.md is left untouched. No network access; the
 tables are built purely from the JSON sources, so the output is fully
 deterministic and safe to run in CI.
 
@@ -17,9 +17,9 @@ Usage:
     python3 scripts/render_readme.py --check    # exit 1 if README is stale (no write)
 
 Exit codes:
-    0 — README already up to date (or was updated successfully)
-    1 — --check mode and README is stale
-    2 — markers missing / malformed README (nothing written)
+    0: README already up to date (or was updated successfully)
+    1: --check mode and README is stale
+    2: markers missing / malformed README (nothing written)
 """
 
 from __future__ import annotations
@@ -85,7 +85,7 @@ def _app_table(app: dict) -> str:
         date = v.get("date", "?")
         size = _mb(v.get("size"))
         url = v.get("downloadURL", "")
-        download = f"[IPA]({url})" if url else "—"
+        download = f"[IPA]({url})" if url else "N/A"
         rows.append(f"| {version} | {build} | {date} | {size} | {download} |")
     return "\n".join(rows)
 
@@ -98,14 +98,14 @@ def build_block() -> str:
     sections: list[str] = []
     for plat in PLATFORMS:
         data = _load(plat)
-        sections.append(f"### {plat['heading']} — `{plat['json']}`")
+        sections.append(f"### {plat['heading']}: `{plat['json']}`")
         for app in data.get("apps", []):
             name = app.get("name", "App")
             bundle = app.get("bundleIdentifier", "")
             annotation = BUNDLE_ANNOTATION.get(bundle, "")
             header = f"#### {name} {annotation}".rstrip()
             if bundle:
-                header += f" — `{bundle}`"
+                header += f": `{bundle}`"
             sections.append(header)
             sections.append(_app_table(app))
     return "\n\n".join(sections)
