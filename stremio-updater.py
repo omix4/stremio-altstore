@@ -360,6 +360,14 @@ def process_platform(plat: str, source: dict, found: dict, *, do_info_plist: boo
                         f"{ipa_version or '?'}b{ipa_build or '?'}"
                     )
                     continue
+                ipa_bundle = str(info_plist.get("CFBundleIdentifier", ""))
+                expected_bundle = str(target.get("bundleIdentifier", ""))
+                if ipa_bundle != expected_bundle:
+                    print(
+                        f"  [WARN] {plat}/{tag} rejected: Info.plist bundle ID "
+                        f"{ipa_bundle or '?'} does not match {expected_bundle or '?'}"
+                    )
+                    continue
             elif verbose:
                 print(f"  [WARN] {plat}/{tag} Info.plist parse: {plist_result.get('error')}")
             if not was_known and not info_plist:

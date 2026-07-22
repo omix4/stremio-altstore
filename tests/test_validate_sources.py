@@ -58,6 +58,18 @@ def valid_source(platform: str = "ios") -> dict:
             },
         ],
     }
+    if platform == "ios":
+        data["apps"].append(
+            {
+                "name": "Stremio Legacy",
+                "bundleIdentifier": "com.stremio.one",
+                "developerName": "Stremio",
+                "localizedDescription": "Stremio legacy test app",
+                "iconURL": ICON_URL,
+                "appPermissions": {"entitlements": [], "privacy": {}},
+                "versions": [version("1.3.2", "2", platform)],
+            }
+        )
     for app in data["apps"]:
         mirror_current_version(app)
     return data

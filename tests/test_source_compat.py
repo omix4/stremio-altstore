@@ -101,6 +101,10 @@ class SourceCompatTests(unittest.TestCase):
                 "plist": {
                     "CFBundleShortVersionString": version,
                     "CFBundleVersion": str(build),
+                    "CFBundleIdentifier": (
+                        "com.stremio.ios" if version.startswith("1.")
+                        else "com.stremio.pal"
+                    ),
                     "MinimumOSVersion": "13.0",
                 },
             }

@@ -219,6 +219,7 @@ class UpdaterDiscoveryTests(unittest.TestCase):
             "plist": {
                 "CFBundleShortVersionString": "2.0.6",
                 "CFBundleVersion": "21",
+                "CFBundleIdentifier": "com.stremio.pal",
                 "MinimumOSVersion": "13.0",
             },
         }
@@ -233,6 +234,49 @@ class UpdaterDiscoveryTests(unittest.TestCase):
         self.assertEqual(plist.call_count, 2)
         self.assertEqual(new_count, 1)
         self.assertEqual(source["apps"][0]["versions"][0]["version"], "2.0.6")
+
+    def test_new_release_rejects_mismatched_bundle_identifier(self):
+        source = {
+            "apps": [
+                {
+                    "name": "Stremio",
+                    "bundleIdentifier": "com.stremio.pal",
+                    "versions": [],
+                },
+                {
+                    "name": "Stremio Lite",
+                    "bundleIdentifier": "com.stremio.ios",
+                    "versions": [],
+                },
+            ]
+        }
+        found = {
+            "ios": {
+                "1.3.2b2": {
+                    "url": "https://dl.strem.io/apple/1.3.2b2/ios/stremio_iOS.ipa",
+                    "size": 100,
+                    "date": "2025-11-19",
+                    "official": {},
+                }
+            }
+        }
+        mismatched = {
+            "ok": True,
+            "plist": {
+                "CFBundleShortVersionString": "1.3.2",
+                "CFBundleVersion": "2",
+                "CFBundleIdentifier": "com.stremio.one",
+                "MinimumOSVersion": "13.0",
+            },
+        }
+        with patch.object(
+            self.updater, "get_main_app_info_plist", return_value=mismatched
+        ):
+            new_count, _ = self.updater.process_platform(
+                "ios", source, found, do_info_plist=False, verbose=False
+            )
+        self.assertEqual(new_count, 0)
+        self.assertEqual(source["apps"][1]["versions"], [])
 
 
 if __name__ == "__main__":

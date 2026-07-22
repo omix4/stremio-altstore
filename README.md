@@ -2,7 +2,7 @@
 
 [![Update source](https://github.com/omix4/stremio-altstore/actions/workflows/update.yml/badge.svg)](https://github.com/omix4/stremio-altstore/actions/workflows/update.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Stremio iOS versions](https://img.shields.io/badge/iOS-11%20versions-7055D9)](stremio-ios.json)
+[![Stremio iOS versions](https://img.shields.io/badge/iOS-14%20versions-7055D9)](stremio-ios.json)
 [![Stremio tvOS versions](https://img.shields.io/badge/tvOS-7%20versions-7055D9)](stremio-tvos.json)
 
 An **unofficial** AltStore-format source collection for Stremio iOS and tvOS, compatible with signing apps that consume AltStore-style **plain IPA** sources — FlareStore, Feather, SideStore, AltStore Classic, ESign, Scarlet, KSign, and others. Stremio's official source at [`dl.strem.io/apple/altstore/source.json`](https://dl.strem.io/apple/altstore/source.json) cannot be parsed by most third-party signing apps because it uses Apple's encrypted App Store Connect marketplace format — this repo publishes standard source JSON that points to Stremio's plain IPA artifacts.
@@ -136,6 +136,14 @@ Prefer to run your own source (own URL, own update schedule)? Fork and host it i
 |---|---|---|---|---|
 | 1.3.6 | 7 | 2026-01-31 | 75 MB | [IPA](https://dl.strem.io/apple/1.3.6b7/ios/stremio_iOS.ipa) |
 
+#### Stremio Legacy (legacy archive) — `com.stremio.one`
+
+| Version | Build | Date | Size | Download |
+|---|---|---|---|---|
+| 1.3.2 | 2 | 2025-11-19 | 55 MB | [IPA](https://dl.strem.io/apple/1.3.2b2/ios/stremio_iOS.ipa) |
+| 1.3.0 | 1 | 2025-10-03 | 54 MB | [IPA](https://dl.strem.io/apple/1.3.0b1/ios/stremio_iOS.ipa) |
+| 1.2.0 | 10 | 2025-07-08 | 68 MB | [IPA](https://dl.strem.io/apple/1.2.0b10/ios/stremio_iOS.ipa) |
+
 ### tvOS — `stremio-tvos.json`
 
 #### Stremio (PAL, full-featured) — `com.stremio.pal`
@@ -161,6 +169,8 @@ Prefer to run your own source (own URL, own update schedule)? Fork and host it i
 
 > 📦 Every version was verified against the IPA's Info.plist (downloaded via HTTP Range, < 5 KB each). Bundle identifiers, version strings, and `MinimumOSVersion` values were read directly from the IPAs.
 
+> 🗃️ **Legacy archive:** Historical CDN candidates were rechecked before publication. Only the three additional iOS builds shown under `com.stremio.one` were still downloadable and internally verifiable; the other reported historical iOS/tvOS URLs returned 404 and are intentionally omitted.
+
 ---
 
 ## Automatic updates
@@ -172,7 +182,7 @@ Each run also, in the same job:
 - **Backfills integrity hashes** — `scripts/add_hashes.py` computes the `sha256` of a few IPAs per run (newest first, budget-limited so it never risks the job's time limit), so every version eventually carries a hash that signing apps can verify the download against.
 - **Regenerates the version tables** in this README from the JSON.
 
-A separate **CDN health canary** (`scripts/check_cdn.py`) runs on the same schedule. Because the updater exits successfully whether it finds new versions or finds nothing, a broken CDN (a changed URL scheme, an outage, or a pulled build) would otherwise be invisible. The canary HEAD-checks the newest known IPA for each platform and **opens a GitHub issue** (deduplicated — one at a time) if the source may be serving dead downloads.
+A separate **CDN health canary** (`scripts/check_cdn.py`) runs on the same schedule. Because the updater exits successfully whether it finds new versions or finds nothing, a broken CDN (a changed URL scheme, an outage, or a pulled build) would otherwise be invisible. The canary HEAD-checks every listed IPA and **opens a GitHub issue** (deduplicated — one at a time) if the source may be serving a dead download.
 
 To enable the workflow: **Actions → Update Stremio source → Enable workflow**.
 
@@ -263,7 +273,7 @@ stremio-altstore/
 
 Stremio uses the **same bundle identifier** on both iOS and tvOS: `com.stremio.pal`. Most signing apps do not allow two apps with the same `bundleIdentifier` inside one source (signing/conflict reasons). That's why:
 
-- `stremio-ios.json`  → iPhone / iPad (`com.stremio.pal` and `com.stremio.ios`)
+- `stremio-ios.json`  → iPhone / iPad (`com.stremio.pal`, `com.stremio.ios`, and the surviving `com.stremio.one` legacy archive)
 - `stremio-tvos.json` → Apple TV (`com.stremio.pal` and `com.stremio.ios`, in separate sources — no conflict)
 
 You can add both to your signing app; the appropriate one shows up per device type.
@@ -273,7 +283,7 @@ You can add both to your signing app; the appropriate one shows up per device ty
 1. **Candidate generation**: Builds independent PAL and Lite frontiers from the newest local version/build. It checks only the next three builds and plausible same-version, patch, minor, and PAL major transitions — at most 54 normal HEAD requests across both platforms.
 2. **Official reconciliation**: Reads Stremio's official PAL source once as an optional hint. Exact version/build pairs and compatible release metadata are merged into the scan, but encrypted marketplace URLs, sizes, and permissions are never copied into this plain-IPA source.
 3. **`scan_cdn`**: Probes the deduplicated `dl.strem.io/apple/{semver}b{build}/{ios|tvos}/...` candidates in parallel with a `ThreadPoolExecutor` (16 workers). Only HTTP 200 plain IPA artifacts are accepted.
-4. **`get_main_app_info_plist`**: Fetches only the relevant chunks of each new IPA via HTTP `Range` requests and verifies its embedded version/build before publication.
+4. **`get_main_app_info_plist`**: Fetches only the relevant chunks of each new IPA via HTTP `Range` requests and verifies its embedded version, build, and bundle identifier before publication.
 5. **`process_platform`**: Adds verified releases or enriches earlier CDN discoveries with official patch notes, dates, and compatible metadata when they become available.
 
 ---

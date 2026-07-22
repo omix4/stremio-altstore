@@ -18,13 +18,14 @@ SOURCES = {
     "stremio-ios.json": {
         "source_url": "https://repo.omix4.one/stremio-ios.json",
         "platform": "ios",
+        "bundles": {"com.stremio.pal", "com.stremio.ios", "com.stremio.one"},
     },
     "stremio-tvos.json": {
         "source_url": "https://repo.omix4.one/stremio-tvos.json",
         "platform": "tvos",
+        "bundles": {"com.stremio.pal", "com.stremio.ios"},
     },
 }
-EXPECTED_BUNDLES = {"com.stremio.pal", "com.stremio.ios"}
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 URL_FIELDS = {"sourceURL", "website", "iconURL", "headerURL", "downloadURL"}
 SOURCE_STRING_FIELDS = {"name"}
@@ -88,9 +89,10 @@ def validate_source(data: object, filename: str) -> list[str]:
         return errors + [f"{filename}.apps: must be an array"]
 
     bundles = [app.get("bundleIdentifier") for app in apps if isinstance(app, dict)]
-    if set(bundles) != EXPECTED_BUNDLES or len(bundles) != len(EXPECTED_BUNDLES):
+    expected_bundles = config["bundles"]
+    if set(bundles) != expected_bundles or len(bundles) != len(expected_bundles):
         errors.append(
-            f"{filename}.apps: expected exactly bundle IDs {sorted(EXPECTED_BUNDLES)}"
+            f"{filename}.apps: expected exactly bundle IDs {sorted(expected_bundles)}"
         )
 
     for index, app in enumerate(apps):

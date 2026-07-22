@@ -46,6 +46,7 @@ PLATFORMS = [
 BUNDLE_ANNOTATION = {
     "com.stremio.pal": "(PAL, full-featured)",
     "com.stremio.ios": "(legacy)",
+    "com.stremio.one": "(legacy archive)",
 }
 
 

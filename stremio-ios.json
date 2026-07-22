@@ -2,7 +2,7 @@
   "name": "Stremio iOS (Unofficial AltStore Source)",
   "identifier": "community.stremio.ios",
   "subtitle": "Freedom to stream — unofficial AltStore-compatible source for iOS / iPadOS.",
-  "description": "An unofficial AltStore source for Stremio iOS / iPadOS, compatible with any signing app that consumes the standard AltStore source format (Feather, AltStore Classic, AltStore PAL, ESign, Scarlet, Sideloadly, and others). Stremio's official source at dl.strem.io/apple/altstore/source.json cannot be parsed by most signing apps because it uses Apple's encrypted App Store Connect marketplace manifest format; this source points to plain IPA artifacts publicly available on the dl.strem.io CDN. Includes two packages: Stremio PAL (full-featured, com.stremio.pal) and Stremio Lite (legacy, com.stremio.ios). For Apple TV (tvOS) add the separate source: stremio-tvos.json. This is an unofficial community port, not supported by Stremio.",
+  "description": "An unofficial AltStore source for Stremio iOS / iPadOS, compatible with any signing app that consumes the standard AltStore source format (Feather, AltStore Classic, AltStore PAL, ESign, Scarlet, Sideloadly, and others). Stremio's official source at dl.strem.io/apple/altstore/source.json cannot be parsed by most signing apps because it uses Apple's encrypted App Store Connect marketplace manifest format; this source points to plain IPA artifacts publicly available on the dl.strem.io CDN. Includes Stremio PAL (full-featured, com.stremio.pal), Stremio Lite (legacy, com.stremio.ios), and the surviving older iOS archive (com.stremio.one). For Apple TV (tvOS) add the separate source: stremio-tvos.json. This is an unofficial community port, not supported by Stremio.",
   "iconURL": "https://repo.omix4.one/assets/stremio-icon.png",
   "headerURL": "https://repo.omix4.one/assets/stremio-icon.png",
   "website": "https://www.stremio.com",
@@ -166,6 +166,59 @@
           "downloadURL": "https://dl.strem.io/apple/1.3.6b7/ios/stremio_iOS.ipa",
           "size": 79430168,
           "sha256": "f6731511f74567363032a937e22e432b069276c369489974d395eb4bbf837478",
+          "minOSVersion": "13.0"
+        }
+      ]
+    },
+    {
+      "name": "Stremio Legacy",
+      "bundleIdentifier": "com.stremio.one",
+      "developerName": "Stremio",
+      "subtitle": "Verified surviving legacy iOS releases.",
+      "localizedDescription": "Stremio Legacy — verified older iOS builds that use the historical com.stremio.one bundle identifier. Requires iPhone or iPad with iOS 13.0+. Prefer Stremio PAL or Stremio Lite unless you specifically need an older release.",
+      "iconURL": "https://repo.omix4.one/assets/stremio-icon.png",
+      "tintColor": "#6B7280",
+      "category": "entertainment",
+      "screenshots": [],
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {}
+      },
+      "version": "1.3.2",
+      "versionDate": "2025-11-19",
+      "versionDescription": "Stremio legacy iOS 1.3.2 (build 2).",
+      "downloadURL": "https://dl.strem.io/apple/1.3.2b2/ios/stremio_iOS.ipa",
+      "size": 58225567,
+      "minOSVersion": "13.0",
+      "versions": [
+        {
+          "version": "1.3.2",
+          "buildVersion": "2",
+          "date": "2025-11-19",
+          "localizedDescription": "Stremio legacy iOS 1.3.2 (build 2).",
+          "downloadURL": "https://dl.strem.io/apple/1.3.2b2/ios/stremio_iOS.ipa",
+          "size": 58225567,
+          "sha256": "dd458c984174a513e81c2afb4d621cf9e3ebd531443c87efe0ebf050d950ec36",
+          "minOSVersion": "13.0"
+        },
+        {
+          "version": "1.3.0",
+          "buildVersion": "1",
+          "date": "2025-10-03",
+          "localizedDescription": "Stremio legacy iOS 1.3.0 (build 1).",
+          "downloadURL": "https://dl.strem.io/apple/1.3.0b1/ios/stremio_iOS.ipa",
+          "size": 57667290,
+          "sha256": "32f56f7b2b6b324669d1196454d6a108779567d8c62bf559ec5fc1cf5bc48e20",
+          "minOSVersion": "13.0"
+        },
+        {
+          "version": "1.2.0",
+          "buildVersion": "10",
+          "date": "2025-07-08",
+          "localizedDescription": "Stremio legacy iOS 1.2.0 (build 10).",
+          "downloadURL": "https://dl.strem.io/apple/1.2.0b10/ios/stremio_iOS.ipa",
+          "size": 71767941,
+          "sha256": "b55da4c5a6fa7de4ea51be26306063fd1d71958dcbea2135f8e42412046707f4",
           "minOSVersion": "13.0"
         }
       ]

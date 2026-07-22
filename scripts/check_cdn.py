@@ -9,9 +9,9 @@ This canary makes that distinction observable.
 
 Two independent signals, derived only from the committed JSON sources:
 
-  1. Reachability (CRITICAL): the newest known IPA for each platform must
-     still return HTTP 200. If it doesn't, either the CDN moved or the build
-     was pulled — either way the source is likely serving a dead download.
+  1. Reachability (CRITICAL): every listed IPA must still return HTTP 200.
+     If one does not, either the CDN moved or that build was pulled — either
+     way the source is serving a dead download.
 
   2. Freshness (WARNING): if the newest version is older than the staleness
      threshold, we may be silently missing releases. This is a soft signal
@@ -34,6 +34,7 @@ import argparse
 import json
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
 from pathlib import Path
 
@@ -62,6 +63,16 @@ def _newest(data: dict) -> dict | None:
     return best
 
 
+def _listed_versions(data: dict) -> list[tuple[str, dict]]:
+    """Return every catalogued release with its app name."""
+    return [
+        (str(app.get("name", "?")), version)
+        for app in data.get("apps", [])
+        for version in app.get("versions", [])
+        if isinstance(version, dict)
+    ]
+
+
 def _age_days(date_str: str) -> int | None:
     try:
         d = datetime.strptime(date_str, "%Y-%m-%d").date()
@@ -81,6 +92,7 @@ def main() -> int:
 
     critical: list[str] = []
     warnings: list[str] = []
+    checks: list[tuple[str, str, dict]] = []
 
     print("=== CDN health check ===")
     for fname in SOURCES:
@@ -95,23 +107,36 @@ def main() -> int:
             print(f"  {fname}: (no versions)")
             continue
 
+        versions = _listed_versions(data)
+        checks.extend((fname, app_name, version) for app_name, version in versions)
         label = f"{v.get('version')} build {v.get('buildVersion')}"
-        url = v.get("downloadURL", "")
-        resp = http_request(url, method="HEAD", timeout=15)
-        status = resp.status
-        reach_ok = status == 200
-        line = f"  {fname}: newest {label} → HTTP {status}"
+        line = f"  {fname}: newest {label}, {len(versions)} listed IPA(s)"
 
         age = _age_days(v.get("date", ""))
         if age is not None:
             line += f", {age}d old"
         print(line)
 
-        if not reach_ok:
-            critical.append(f"{fname}: newest IPA {label} unreachable (HTTP {status}) — {url}")
         if age is not None and age > max_age:
             warnings.append(f"{fname}: newest version {label} is {age} days old (> {max_age}d threshold) — "
                             f"scanner may be missing releases, or Stremio has not shipped")
+
+    def check(candidate: tuple[str, str, dict]) -> tuple[str, str, dict, object]:
+        fname, app_name, version = candidate
+        url = version.get("downloadURL", "")
+        status = http_request(url, method="HEAD", timeout=15).status
+        return fname, app_name, version, status
+
+    print("\n=== Listed IPA reachability ===")
+    with ThreadPoolExecutor(max_workers=min(12, max(1, len(checks)))) as executor:
+        for fname, app_name, version, status in executor.map(check, checks):
+            label = f"{version.get('version')} build {version.get('buildVersion')}"
+            print(f"  {fname} · {app_name} {label} → HTTP {status}")
+            if status != 200:
+                critical.append(
+                    f"{fname}: {app_name} {label} unreachable (HTTP {status}) — "
+                    f"{version.get('downloadURL', '')}"
+                )
 
     print()
     for w in warnings:
