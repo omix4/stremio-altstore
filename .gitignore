@@ -88,6 +88,13 @@ nbdist/
 # ====================================================
 # Project-specific
 # ====================================================
+# Frontend dependencies
+web/node_modules/
+web/dist/
+.pnpm-store/
+!web/src/lib/
+!web/src/lib/**
+
 # Updater output (local test artifacts)
 *.tmp
 *.bak
