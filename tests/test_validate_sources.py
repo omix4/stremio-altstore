@@ -100,9 +100,19 @@ class ValidateSourcesTests(unittest.TestCase):
         data["apps"][0]["versions"][0]["sha256"] = "not-a-hash"
         data["apps"][0]["version"] = "0.0.1"
         errors = validate_source(data, "stremio-ios.json")
-        self.assertTrue(any("expected exactly bundle IDs" in error for error in errors))
+        self.assertTrue(any("expected unique allowed bundle IDs" in error for error in errors))
         self.assertTrue(any("64 lowercase hex" in error for error in errors))
         self.assertTrue(any("must mirror newest" in error for error in errors))
+
+    def test_allows_optional_legacy_app_to_be_fully_retired(self):
+        data = valid_source()
+        data["apps"] = [
+            app
+            for app in data["apps"]
+            if app["bundleIdentifier"] != "com.stremio.one"
+        ]
+
+        self.assertEqual(validate_source(data, "stremio-ios.json"), [])
 
     def test_rejects_missing_modern_and_legacy_required_fields(self):
         data = valid_source()

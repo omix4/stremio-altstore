@@ -200,26 +200,6 @@
           "size": 58225567,
           "sha256": "dd458c984174a513e81c2afb4d621cf9e3ebd531443c87efe0ebf050d950ec36",
           "minOSVersion": "13.0"
-        },
-        {
-          "version": "1.3.0",
-          "buildVersion": "1",
-          "date": "2025-10-03",
-          "localizedDescription": "Stremio legacy iOS 1.3.0 (build 1).",
-          "downloadURL": "https://dl.strem.io/apple/1.3.0b1/ios/stremio_iOS.ipa",
-          "size": 57667290,
-          "sha256": "32f56f7b2b6b324669d1196454d6a108779567d8c62bf559ec5fc1cf5bc48e20",
-          "minOSVersion": "13.0"
-        },
-        {
-          "version": "1.2.0",
-          "buildVersion": "10",
-          "date": "2025-07-08",
-          "localizedDescription": "Stremio legacy iOS 1.2.0 (build 10).",
-          "downloadURL": "https://dl.strem.io/apple/1.2.0b10/ios/stremio_iOS.ipa",
-          "size": 71767941,
-          "sha256": "b55da4c5a6fa7de4ea51be26306063fd1d71958dcbea2135f8e42412046707f4",
-          "minOSVersion": "13.0"
         }
       ]
     }

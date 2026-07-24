@@ -1,31 +1,15 @@
 #!/usr/bin/env python3
-"""
-check_cdn.py — canary for silent updater failure
+"""Check listed IPA links and optionally retire confirmed missing builds.
 
-The whole value of this repo is "always current". But the updater exits 0
-whether it found new versions or found nothing — so a broken CDN (URL
-scheme change, outage, or a pulled build) looks identical to "no news".
-This canary makes that distinction observable.
-
-Two independent signals, derived only from the committed JSON sources:
-
-  1. Reachability (CRITICAL): every listed IPA must still return HTTP 200.
-     If one does not, either the CDN moved or that build was pulled — either
-     way the source is serving a dead download.
-
-  2. Freshness (WARNING): if the newest version is older than the staleness
-     threshold, we may be silently missing releases. This is a soft signal
-     (Stremio genuinely goes quiet sometimes), so it never fails the run.
-
-Usage:
-    python3 scripts/check_cdn.py                 # check both sources
-    python3 scripts/check_cdn.py --max-age-days 60
-
-Thresholds: --max-age-days arg > CDN_MAX_AGE_DAYS env > default (45).
+Every listed IPA is checked once. A failed request is checked a second time
+after a short delay. With ``--prune-unavailable``, only links that return 404
+or 410 on both checks are removed from the AltStore source and recorded in
+``unavailable-builds.json``. Other repeated failures remain critical so a CDN
+outage or an ambiguous response cannot silently remove releases.
 
 Exit codes:
-    0 — healthy (warnings allowed)
-    2 — CRITICAL: at least one newest IPA is unreachable
+    0 — healthy, warnings allowed, or confirmed missing builds were retired
+    2 — CRITICAL: at least one failure could not be safely retired
 """
 
 from __future__ import annotations
@@ -34,16 +18,21 @@ import argparse
 import json
 import os
 import sys
+import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
-from ipa_plist import http_request  # noqa: E402  (reuse the shared HTTP helper)
+from ipa_plist import http_request  # noqa: E402
+from source_compat import mirror_current_version  # noqa: E402
 
 SOURCES = ["stremio-ios.json", "stremio-tvos.json"]
+ARCHIVE = "unavailable-builds.json"
 DEFAULT_MAX_AGE_DAYS = 45
+DEFAULT_RETRY_DELAY_SECONDS = 2.0
+GONE_STATUSES = {404, 410}
 
 
 def _newest(data: dict) -> dict | None:
@@ -51,22 +40,25 @@ def _newest(data: dict) -> dict | None:
     best = None
     best_key = None
     for app in data.get("apps", []):
-        for v in app.get("versions", []):
-            parts = [int(c) if c.isdigit() else -1 for c in str(v.get("version", "")).split(".")]
+        for version in app.get("versions", []):
+            parts = [
+                int(chunk) if chunk.isdigit() else -1
+                for chunk in str(version.get("version", "")).split(".")
+            ]
             try:
-                build = int(v.get("buildVersion", 0))
+                build = int(version.get("buildVersion", 0))
             except (TypeError, ValueError):
                 build = 0
             key = (parts, build)
             if best_key is None or key > best_key:
-                best_key, best = key, v
+                best_key, best = key, version
     return best
 
 
-def _listed_versions(data: dict) -> list[tuple[str, dict]]:
-    """Return every catalogued release with its app name."""
+def _listed_versions(data: dict) -> list[tuple[dict, dict]]:
+    """Return every catalogued release with its containing app."""
     return [
-        (str(app.get("name", "?")), version)
+        (app, version)
         for app in data.get("apps", [])
         for version in app.get("versions", [])
         if isinstance(version, dict)
@@ -75,78 +67,220 @@ def _listed_versions(data: dict) -> list[tuple[str, dict]]:
 
 def _age_days(date_str: str) -> int | None:
     try:
-        d = datetime.strptime(date_str, "%Y-%m-%d").date()
+        release_date = datetime.strptime(date_str, "%Y-%m-%d").date()
     except (TypeError, ValueError):
         return None
-    return (date.today() - d).days
+    return (date.today() - release_date).days
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--max-age-days", type=int, default=None,
-                    help="Freshness warning threshold (default: CDN_MAX_AGE_DAYS env or 45)")
-    args = ap.parse_args()
-    max_age = args.max_age_days if args.max_age_days is not None \
+def _status(version: dict) -> int | None:
+    url = version.get("downloadURL", "")
+    return http_request(
+        url,
+        method="HEAD",
+        headers={"Cache-Control": "no-cache"},
+        timeout=15,
+    ).status
+
+
+def _check_twice(
+    checks: list[tuple[str, dict, dict]], retry_delay: float
+) -> list[tuple[str, dict, dict, int | None, int | None]]:
+    """Check everything once, then retry only failed links."""
+    workers = min(12, max(1, len(checks)))
+    with ThreadPoolExecutor(max_workers=workers) as executor:
+        first_statuses = list(executor.map(lambda item: _status(item[2]), checks))
+
+    retry_indexes = [
+        index for index, status in enumerate(first_statuses) if status != 200
+    ]
+    second_statuses: dict[int, int | None] = {}
+    if retry_indexes:
+        if retry_delay > 0:
+            time.sleep(retry_delay)
+        retry_versions = [checks[index][2] for index in retry_indexes]
+        with ThreadPoolExecutor(max_workers=min(12, len(retry_versions))) as executor:
+            retried = executor.map(_status, retry_versions)
+            second_statuses = dict(zip(retry_indexes, retried))
+
+    return [
+        (*candidate, first_statuses[index], second_statuses.get(index))
+        for index, candidate in enumerate(checks)
+    ]
+
+
+def _archive_entry(
+    source: str, app: dict, version: dict, status: int, removed_on: str
+) -> dict:
+    return {
+        "source": source,
+        "platform": "tvOS" if source == "stremio-tvos.json" else "iOS / iPadOS",
+        "appName": str(app.get("name", "?")),
+        "bundleIdentifier": str(app.get("bundleIdentifier", "")),
+        "version": version.get("version"),
+        "buildVersion": version.get("buildVersion"),
+        "releaseDate": version.get("date"),
+        "downloadURL": version.get("downloadURL"),
+        "removedDate": removed_on,
+        "status": status,
+    }
+
+
+def _retire_confirmed_missing(
+    source_data: dict[str, dict],
+    results: list[tuple[str, dict, dict, int | None, int | None]],
+    archive_path: Path,
+    removed_on: str | None = None,
+) -> list[dict]:
+    """Remove twice-confirmed missing versions and append archive records."""
+    removed_on = removed_on or date.today().isoformat()
+    if archive_path.exists():
+        archive = json.loads(archive_path.read_text(encoding="utf-8"))
+    else:
+        archive = {"builds": []}
+    archived_urls = {
+        entry.get("downloadURL") for entry in archive.get("builds", [])
+    }
+    retired: list[dict] = []
+
+    for source, app, version, first, second in results:
+        if first not in GONE_STATUSES or second not in GONE_STATUSES:
+            continue
+        assert isinstance(second, int)
+        versions = app.get("versions", [])
+        if version not in versions:
+            continue
+        versions.remove(version)
+        entry = _archive_entry(source, app, version, second, removed_on)
+        retired.append(entry)
+        if entry["downloadURL"] not in archived_urls:
+            archive.setdefault("builds", []).append(entry)
+            archived_urls.add(entry["downloadURL"])
+        if versions:
+            mirror_current_version(app)
+        else:
+            source_data[source]["apps"].remove(app)
+
+    if not retired:
+        return []
+
+    for source, data in source_data.items():
+        (REPO / source).write_text(
+            json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+    archive["builds"].sort(
+        key=lambda entry: (
+            str(entry.get("removedDate", "")),
+            str(entry.get("source", "")),
+            str(entry.get("appName", "")),
+            str(entry.get("version", "")),
+            str(entry.get("buildVersion", "")),
+        ),
+        reverse=True,
+    )
+    archive_path.write_text(
+        json.dumps(archive, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    return retired
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--max-age-days",
+        type=int,
+        default=None,
+        help="Freshness warning threshold (default: CDN_MAX_AGE_DAYS or 45)",
+    )
+    parser.add_argument(
+        "--prune-unavailable",
+        action="store_true",
+        help="retire links confirmed missing by two consecutive 404/410 responses",
+    )
+    parser.add_argument(
+        "--retry-delay-seconds",
+        type=float,
+        default=DEFAULT_RETRY_DELAY_SECONDS,
+        help="delay before rechecking a failed link (default: 2)",
+    )
+    args = parser.parse_args(argv)
+    max_age = (
+        args.max_age_days
+        if args.max_age_days is not None
         else int(os.environ.get("CDN_MAX_AGE_DAYS", DEFAULT_MAX_AGE_DAYS))
+    )
 
     critical: list[str] = []
     warnings: list[str] = []
-    checks: list[tuple[str, str, dict]] = []
+    checks: list[tuple[str, dict, dict]] = []
+    source_data: dict[str, dict] = {}
 
     print("=== CDN health check ===")
-    for fname in SOURCES:
-        path = REPO / fname
+    for source in SOURCES:
+        path = REPO / source
         if not path.exists():
-            critical.append(f"{fname}: file not found")
+            critical.append(f"{source}: file not found")
             continue
         data = json.loads(path.read_text(encoding="utf-8"))
-        v = _newest(data)
-        if not v:
-            warnings.append(f"{fname}: no versions listed")
-            print(f"  {fname}: (no versions)")
+        source_data[source] = data
+        newest = _newest(data)
+        if not newest:
+            warnings.append(f"{source}: no versions listed")
+            print(f"  {source}: (no versions)")
             continue
 
         versions = _listed_versions(data)
-        checks.extend((fname, app_name, version) for app_name, version in versions)
-        label = f"{v.get('version')} build {v.get('buildVersion')}"
-        line = f"  {fname}: newest {label}, {len(versions)} listed IPA(s)"
-
-        age = _age_days(v.get("date", ""))
+        checks.extend((source, app, version) for app, version in versions)
+        label = f"{newest.get('version')} build {newest.get('buildVersion')}"
+        line = f"  {source}: newest {label}, {len(versions)} listed IPA(s)"
+        age = _age_days(newest.get("date", ""))
         if age is not None:
             line += f", {age}d old"
         print(line)
-
         if age is not None and age > max_age:
-            warnings.append(f"{fname}: newest version {label} is {age} days old (> {max_age}d threshold) — "
-                            f"scanner may be missing releases, or Stremio has not shipped")
-
-    def check(candidate: tuple[str, str, dict]) -> tuple[str, str, dict, object]:
-        fname, app_name, version = candidate
-        url = version.get("downloadURL", "")
-        status = http_request(url, method="HEAD", timeout=15).status
-        return fname, app_name, version, status
+            warnings.append(
+                f"{source}: newest version {label} is {age} days old "
+                f"(> {max_age}d threshold) — scanner may be missing releases, "
+                "or Stremio has not shipped"
+            )
 
     print("\n=== Listed IPA reachability ===")
-    with ThreadPoolExecutor(max_workers=min(12, max(1, len(checks)))) as executor:
-        for fname, app_name, version, status in executor.map(check, checks):
-            label = f"{version.get('version')} build {version.get('buildVersion')}"
-            print(f"  {fname} · {app_name} {label} → HTTP {status}")
-            if status != 200:
-                critical.append(
-                    f"{fname}: {app_name} {label} unreachable (HTTP {status}) — "
-                    f"{version.get('downloadURL', '')}"
-                )
+    results = _check_twice(checks, max(0, args.retry_delay_seconds))
+    retired = (
+        _retire_confirmed_missing(source_data, results, REPO / ARCHIVE)
+        if args.prune_unavailable
+        else []
+    )
+    retired_urls = {entry["downloadURL"] for entry in retired}
+
+    for source, app, version, first, second in results:
+        label = f"{version.get('version')} build {version.get('buildVersion')}"
+        prefix = f"{source} · {app.get('name', '?')} {label}"
+        if first == 200:
+            print(f"  {prefix} → HTTP 200")
+            continue
+        print(f"  {prefix} → HTTP {first}; retry HTTP {second}")
+        url = version.get("downloadURL", "")
+        if url in retired_urls:
+            print(f"  [REMOVED] {prefix} — confirmed unavailable and archived")
+            continue
+        critical.append(
+            f"{source}: {app.get('name', '?')} {label} unreachable "
+            f"(HTTP {first}, retry HTTP {second}) — {url}"
+        )
 
     print()
-    for w in warnings:
-        print(f"[WARN] {w}")
-    for c in critical:
-        print(f"[CRITICAL] {c}")
+    for warning in warnings:
+        print(f"[WARN] {warning}")
+    for message in critical:
+        print(f"[CRITICAL] {message}")
 
     if critical:
-        print("\nResult: CRITICAL — the source may be serving dead downloads or the CDN layout changed.")
+        print("\nResult: CRITICAL — one or more downloads could not be safely retired.")
         return 2
+    if retired:
+        print(f"\nResult: retired {len(retired)} confirmed unavailable build(s).")
+        return 0
     if warnings:
         print("\nResult: OK with warnings.")
         return 0

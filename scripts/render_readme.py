@@ -2,7 +2,7 @@
 """
 render_readme.py: regenerate the "Available versions" tables in README.md
 
-Reads stremio-ios.json and stremio-tvos.json and rewrites ONLY the block
+Reads stremio-ios.json, stremio-tvos.json, and unavailable-builds.json and rewrites ONLY the block
 between the markers:
 
     <!-- BEGIN:AVAILABLE_VERSIONS ... -->
@@ -40,6 +40,8 @@ PLATFORMS = [
     {"json": "stremio-ios.json", "heading": "iOS / iPadOS", "badge": "iOS"},
     {"json": "stremio-tvos.json", "heading": "tvOS", "badge": "tvOS"},
 ]
+
+UNAVAILABLE = "unavailable-builds.json"
 
 # Human labels appended after the app name, keyed by bundle identifier.
 # Unknown bundles simply get no annotation (graceful fallback).
@@ -94,6 +96,28 @@ def _load(plat: dict) -> dict:
     return json.loads((REPO / plat["json"]).read_text(encoding="utf-8"))
 
 
+def _unavailable_table() -> str:
+    path = REPO / UNAVAILABLE
+    builds = []
+    if path.exists():
+        builds = json.loads(path.read_text(encoding="utf-8")).get("builds", [])
+    rows = [
+        "| Platform | App | Version | Build | Released | Removed | Status |",
+        "|---|---|---|---|---|---|---|",
+    ]
+    for build in builds:
+        status = build.get("status", "?")
+        rows.append(
+            f"| {build.get('platform', '?')} | {build.get('appName', '?')} | "
+            f"{build.get('version', '?')} | {build.get('buildVersion', '?')} | "
+            f"{build.get('releaseDate', '?')} | {build.get('removedDate', '?')} | "
+            f"Unavailable (HTTP {status}) |"
+        )
+    if not builds:
+        rows.append("| — | — | — | — | — | — | None |")
+    return "\n".join(rows)
+
+
 def build_block() -> str:
     sections: list[str] = []
     for plat in PLATFORMS:
@@ -108,6 +132,12 @@ def build_block() -> str:
                 header += f": `{bundle}`"
             sections.append(header)
             sections.append(_app_table(app))
+    sections.append("### Unavailable builds")
+    sections.append(
+        "These builds were removed from the installable sources after two "
+        "consecutive CDN checks returned HTTP 404 or 410."
+    )
+    sections.append(_unavailable_table())
     return "\n\n".join(sections)
 
 

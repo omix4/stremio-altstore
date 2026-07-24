@@ -1,0 +1,28 @@
+{
+  "builds": [
+    {
+      "source": "stremio-ios.json",
+      "platform": "iOS / iPadOS",
+      "appName": "Stremio Legacy",
+      "bundleIdentifier": "com.stremio.one",
+      "version": "1.3.0",
+      "buildVersion": "1",
+      "releaseDate": "2025-10-03",
+      "downloadURL": "https://dl.strem.io/apple/1.3.0b1/ios/stremio_iOS.ipa",
+      "removedDate": "2026-07-24",
+      "status": 404
+    },
+    {
+      "source": "stremio-ios.json",
+      "platform": "iOS / iPadOS",
+      "appName": "Stremio Legacy",
+      "bundleIdentifier": "com.stremio.one",
+      "version": "1.2.0",
+      "buildVersion": "10",
+      "releaseDate": "2025-07-08",
+      "downloadURL": "https://dl.strem.io/apple/1.2.0b10/ios/stremio_iOS.ipa",
+      "removedDate": "2026-07-24",
+      "status": 404
+    }
+  ]
+}

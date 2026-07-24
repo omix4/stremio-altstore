@@ -7,7 +7,7 @@
 #   make verify      — update with Info.plist verification (slower)
 #   make readme      — regenerate the README "Available versions" tables
 #   make hashes      — backfill sha256 integrity hashes (budgeted downloads)
-#   make canary      — CDN health check (newest IPAs still reachable?)
+#   make canary      — CDN health check (all listed IPAs reachable?)
 #   make validate    — validate source compatibility and URL safety
 #   make test        — run standard-library unit tests
 #   make lint        — Python code quality checks
@@ -63,7 +63,7 @@ hashes:  ## Backfill sha256 integrity hashes (set BUDGET=N to override per-run c
 	@echo "$(YELLOW)→ Backfill sha256 hashes$(RESET)"
 	$(PYTHON) scripts/add_hashes.py $(if $(BUDGET),--budget $(BUDGET),)
 
-canary:  ## CDN health check — are the newest known IPAs still reachable?
+canary:  ## CDN health check — are all listed IPAs still reachable?
 	@echo "$(YELLOW)→ CDN health canary$(RESET)"
 	$(PYTHON) scripts/check_cdn.py
 

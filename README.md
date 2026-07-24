@@ -2,7 +2,7 @@
 
 [![Update source](https://github.com/omix4/stremio-altstore/actions/workflows/update.yml/badge.svg)](https://github.com/omix4/stremio-altstore/actions/workflows/update.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Stremio iOS versions](https://img.shields.io/badge/iOS-14%20versions-7055D9)](stremio-ios.json)
+[![Stremio iOS versions](https://img.shields.io/badge/iOS-12%20versions-7055D9)](stremio-ios.json)
 [![Stremio tvOS versions](https://img.shields.io/badge/tvOS-7%20versions-7055D9)](stremio-tvos.json)
 [![Browse repository](https://img.shields.io/badge/Browse-repo.omix4.one-7055D9)](https://repo.omix4.one/)
 
@@ -165,8 +165,6 @@ Prefer to run your own source (own URL, own update schedule)? Fork and host it i
 | Version | Build | Date | Size | Download |
 |---|---|---|---|---|
 | 1.3.2 | 2 | 2025-11-19 | 55 MB | [IPA](https://dl.strem.io/apple/1.3.2b2/ios/stremio_iOS.ipa) |
-| 1.3.0 | 1 | 2025-10-03 | 54 MB | [IPA](https://dl.strem.io/apple/1.3.0b1/ios/stremio_iOS.ipa) |
-| 1.2.0 | 10 | 2025-07-08 | 68 MB | [IPA](https://dl.strem.io/apple/1.2.0b10/ios/stremio_iOS.ipa) |
 
 ### tvOS: `stremio-tvos.json`
 
@@ -187,13 +185,22 @@ Prefer to run your own source (own URL, own update schedule)? Fork and host it i
 |---|---|---|---|---|
 | 1.3.6 | 7 | 2026-01-31 | 73 MB | [IPA](https://dl.strem.io/apple/1.3.6b7/tvos/stremio_tvOS.ipa) |
 
+### Unavailable builds
+
+These builds were removed from the installable sources after two consecutive CDN checks returned HTTP 404 or 410.
+
+| Platform | App | Version | Build | Released | Removed | Status |
+|---|---|---|---|---|---|---|
+| iOS / iPadOS | Stremio Legacy | 1.3.0 | 1 | 2025-10-03 | 2026-07-24 | Unavailable (HTTP 404) |
+| iOS / iPadOS | Stremio Legacy | 1.2.0 | 10 | 2025-07-08 | 2026-07-24 | Unavailable (HTTP 404) |
+
 <!-- END:AVAILABLE_VERSIONS -->
 
-> 🤖 The tables above are auto-generated from the JSON sources by `scripts/render_readme.py` on every update. Do not edit them by hand.
+> 🤖 The installable and unavailable-build tables above are auto-generated from the JSON sources and `unavailable-builds.json` by `scripts/render_readme.py` on every update. Do not edit them by hand.
 
 > 📦 Every version was verified against the IPA's Info.plist (downloaded via HTTP Range, < 5 KB each). Bundle identifiers, version strings, and `MinimumOSVersion` values were read directly from the IPAs.
 
-> 🗃️ **Legacy archive:** Historical CDN candidates were rechecked before publication. Only the three additional iOS builds shown under `com.stremio.one` were still downloadable and internally verifiable; the other reported historical iOS/tvOS URLs returned 404 and are intentionally omitted.
+> 🗃️ **Legacy archive:** Historical CDN candidates are rechecked before publication. Downloadable builds remain under `com.stremio.one`; builds later withdrawn from the CDN are removed from the source and retained in the **Unavailable builds** table for reference.
 
 ---
 
@@ -206,7 +213,7 @@ Each run also, in the same job:
 - **Backfills integrity hashes**: `scripts/add_hashes.py` computes the `sha256` of a few IPAs per run (newest first, budget-limited so it never risks the job's time limit), so every version eventually carries a hash that signing apps can verify the download against.
 - **Regenerates the version tables** in this README from the JSON.
 
-A separate **CDN health canary** (`scripts/check_cdn.py`) runs on the same schedule. Because the updater exits successfully whether it finds new versions or finds nothing, a broken CDN (a changed URL scheme, an outage, or a pulled build) would otherwise be invisible. The canary HEAD-checks every listed IPA and **opens a GitHub issue** (deduplicated, one at a time) if the source may be serving a dead download.
+A separate **CDN health canary** (`scripts/check_cdn.py`) runs on the same schedule. Because the updater exits successfully whether it finds new versions or finds nothing, a broken CDN (a changed URL scheme, an outage, or a pulled build) would otherwise be invisible. The canary HEAD-checks every listed IPA and retries failures after a short delay. Two consecutive 404/410 responses remove the build from the AltStore source and move it to the README's **Unavailable builds** table; ambiguous failures still **open a GitHub issue** (deduplicated, one at a time) rather than deleting anything.
 
 To enable the workflow: **Actions → Update Stremio source → Enable workflow**.
 
@@ -286,6 +293,7 @@ stremio-altstore/
 ├── index.html                  (compiled GitHub Pages entry point)
 ├── stremio-ios.json            (main source for iOS / iPadOS)
 ├── stremio-tvos.json           (main source for tvOS)
+├── unavailable-builds.json     (retired CDN build archive)
 ├── stremio-updater.py          (CDN scanner and JSON updater)
 ├── ipa_plist.py                (shared HTTP-Range IPA Info.plist parser)
 ├── assets/

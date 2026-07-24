@@ -324,8 +324,6 @@ def merge_version(app: dict, version: str, build: int, meta: dict, info: Optiona
 
 def process_platform(plat: str, source: dict, found: dict, *, do_info_plist: bool, verbose: bool) -> tuple[int, int]:
     info = PLATFORMS[plat]
-    pal_app = get_or_create_app(source, "Stremio", info["pal_bundle"], "#7055D9")
-    lite_app = get_or_create_app(source, "Stremio Lite", info["lite_bundle"], "#8A5AAB")
 
     new_count = 0
     update_count = 0
@@ -336,7 +334,14 @@ def process_platform(plat: str, source: dict, found: dict, *, do_info_plist: boo
         version, build = pv
 
         # 1.x = Lite, 2.x = PAL
-        target = lite_app if version.startswith("1.") else pal_app
+        if version.startswith("1."):
+            target = get_or_create_app(
+                source, "Stremio Lite", info["lite_bundle"], "#8A5AAB"
+            )
+        else:
+            target = get_or_create_app(
+                source, "Stremio", info["pal_bundle"], "#7055D9"
+            )
 
         # Already known? New IPAs are always verified against their embedded
         # metadata. --info-plist additionally refreshes that metadata for known IPAs.
@@ -395,7 +400,10 @@ def process_platform(plat: str, source: dict, found: dict, *, do_info_plist: boo
             else:
                 new_count += 1
                 print(f"  [NEW] {plat}/{tag} -> added ({meta['size'] // 1024 // 1024} MB, {meta.get('date')})")
-    for app in (pal_app, lite_app):
+    managed_bundles = {info["pal_bundle"], info["lite_bundle"]}
+    for app in source.get("apps", []):
+        if app.get("bundleIdentifier") not in managed_bundles:
+            continue
         if not app.get("versions"):
             continue
         sort_versions(app)

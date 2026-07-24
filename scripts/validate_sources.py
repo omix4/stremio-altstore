@@ -19,11 +19,13 @@ SOURCES = {
         "source_url": "https://repo.omix4.one/stremio-ios.json",
         "platform": "ios",
         "bundles": {"com.stremio.pal", "com.stremio.ios", "com.stremio.one"},
+        "required_bundles": {"com.stremio.pal"},
     },
     "stremio-tvos.json": {
         "source_url": "https://repo.omix4.one/stremio-tvos.json",
         "platform": "tvos",
         "bundles": {"com.stremio.pal", "com.stremio.ios"},
+        "required_bundles": {"com.stremio.pal"},
     },
 }
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -89,10 +91,17 @@ def validate_source(data: object, filename: str) -> list[str]:
         return errors + [f"{filename}.apps: must be an array"]
 
     bundles = [app.get("bundleIdentifier") for app in apps if isinstance(app, dict)]
-    expected_bundles = config["bundles"]
-    if set(bundles) != expected_bundles or len(bundles) != len(expected_bundles):
+    allowed_bundles = config["bundles"]
+    required_bundles = config["required_bundles"]
+    actual_bundles = set(bundles)
+    if (
+        not required_bundles.issubset(actual_bundles)
+        or not actual_bundles.issubset(allowed_bundles)
+        or len(bundles) != len(actual_bundles)
+    ):
         errors.append(
-            f"{filename}.apps: expected exactly bundle IDs {sorted(expected_bundles)}"
+            f"{filename}.apps: expected unique allowed bundle IDs "
+            f"{sorted(allowed_bundles)} including required {sorted(required_bundles)}"
         )
 
     for index, app in enumerate(apps):

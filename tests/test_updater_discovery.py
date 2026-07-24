@@ -278,6 +278,34 @@ class UpdaterDiscoveryTests(unittest.TestCase):
         self.assertEqual(new_count, 0)
         self.assertEqual(source["apps"][1]["versions"], [])
 
+    def test_missing_optional_track_is_not_recreated_without_a_release(self):
+        source = {
+            "apps": [
+                {
+                    "name": "Stremio",
+                    "bundleIdentifier": "com.stremio.pal",
+                    "versions": [
+                        {
+                            "version": "2.0.6",
+                            "buildVersion": "21",
+                            "date": "2026-07-22",
+                            "localizedDescription": "Current",
+                            "downloadURL": "https://example.invalid/current.ipa",
+                            "size": 100,
+                            "minOSVersion": "13.0",
+                        }
+                    ],
+                }
+            ]
+        }
+
+        self.updater.process_platform(
+            "ios", source, {"ios": {}}, do_info_plist=False, verbose=False
+        )
+
+        self.assertEqual(len(source["apps"]), 1)
+        self.assertEqual(source["apps"][0]["bundleIdentifier"], "com.stremio.pal")
+
 
 if __name__ == "__main__":
     unittest.main()
