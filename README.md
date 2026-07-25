@@ -200,6 +200,8 @@ The repo includes a GitHub Actions workflow that runs `stremio-updater.py` every
 
 Each run also, in the same job:
 
+- **Synchronizes official screenshots**: the PAL iOS listing adopts Stremio's validated iPhone and iPad screenshot metadata from the official source. If that source is unavailable or malformed, the last known-good screenshots remain in place.
+- **Publishes release news**: genuinely new, recent releases receive AltStore news entries and notifications. Matching iOS and tvOS builds discovered together share one combined announcement; backfills, hash changes, and metadata refreshes never create news.
 - **Backfills integrity hashes**: `scripts/add_hashes.py` computes the `sha256` of a few IPAs per run (newest first, budget-limited so it never risks the job's time limit), so every version eventually carries a hash that signing apps can verify the download against.
 - **Regenerates the version tables** in this README from the JSON.
 
@@ -317,10 +319,11 @@ You can add both to your signing app; the appropriate one shows up per device ty
 ### How the updater works
 
 1. **Candidate generation**: Builds independent PAL and Lite frontiers from the newest local version/build. It checks only the next three builds and plausible same-version, patch, minor, and PAL major transitions, with at most 54 normal HEAD requests across both platforms.
-2. **Official reconciliation**: Reads Stremio's official PAL source once as an optional hint. Exact version/build pairs and compatible release metadata are merged into the scan, but encrypted marketplace URLs, sizes, and permissions are never copied into this plain-IPA source.
+2. **Official reconciliation**: Reads Stremio's official PAL source once as an optional hint. Exact version/build pairs and compatible release metadata are merged into the scan, and validated official iPhone/iPad screenshots are synchronized to the PAL iOS listing. Encrypted marketplace URLs, sizes, and permissions are never copied into this plain-IPA source.
 3. **`scan_cdn`**: Probes the deduplicated `dl.strem.io/apple/{semver}b{build}/{ios|tvos}/...` candidates in parallel with a `ThreadPoolExecutor` (16 workers). Only HTTP 200 plain IPA artifacts are accepted.
 4. **`get_main_app_info_plist`**: Fetches only the relevant chunks of each new IPA via HTTP `Range` requests and verifies its embedded version, build, and bundle identifier before publication.
 5. **`process_platform`**: Adds verified releases or enriches earlier CDN discoveries with official patch notes, dates, and compatible metadata when they become available.
+6. **Release news**: Collects newly added releases across both platforms, combines matching iOS/tvOS builds, and retains the latest 15 future-release announcements per source. Only forward-moving releases dated within the previous 72 hours notify subscribers.
 
 ---
 

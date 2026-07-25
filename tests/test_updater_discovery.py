@@ -4,6 +4,7 @@ import importlib.util
 import json
 import sys
 import unittest
+from datetime import date
 from pathlib import Path
 from unittest.mock import patch
 
@@ -68,6 +69,18 @@ class UpdaterDiscoveryTests(unittest.TestCase):
             "apps": [
                 {
                     "bundleIdentifier": "com.stremio.pal",
+                    "screenshots": {
+                        "iphone": [
+                            "https://is1-ssl.mzstatic.com/image/iphone.jpg"
+                        ],
+                        "ipad": [
+                            {
+                                "imageURL": "https://is2-ssl.mzstatic.com/image/ipad.jpg",
+                                "width": 2048,
+                                "height": 2732,
+                            }
+                        ],
+                    },
                     "versions": [
                         {
                             "version": "2.0.6",
@@ -86,10 +99,10 @@ class UpdaterDiscoveryTests(unittest.TestCase):
             200, {}, json.dumps(source).encode()
         )
         with patch.object(self.updater, "http_request", return_value=response):
-            releases = self.updater.fetch_official_releases()
+            metadata = self.updater.fetch_official_metadata()
 
         self.assertEqual(
-            releases,
+            metadata["releases"],
             {
                 "2.0.6b21": {
                     "date": "2026-07-22",
@@ -98,10 +111,126 @@ class UpdaterDiscoveryTests(unittest.TestCase):
                 }
             },
         )
+        self.assertEqual(metadata["screenshots"], source["apps"][0]["screenshots"])
 
         invalid = self.updater.ipa_plist.HttpResp(200, {}, b'{"apps":')
         with patch.object(self.updater, "http_request", return_value=invalid):
             self.assertEqual(self.updater.fetch_official_releases(), {})
+
+    def test_official_screenshots_are_strict_and_preserve_last_known_good(self):
+        source = {
+            "apps": [
+                {
+                    "bundleIdentifier": "com.stremio.pal",
+                    "screenshots": ["https://repo.omix4.one/not-official.png"],
+                },
+                {
+                    "bundleIdentifier": "com.stremio.ios",
+                    "screenshots": [],
+                },
+            ]
+        }
+        official = {
+            "iphone": ["https://is1-ssl.mzstatic.com/image/phone.jpg"],
+            "ipad": [
+                {
+                    "imageURL": "https://is1-ssl.mzstatic.com/image/tablet.jpg",
+                    "width": 2048,
+                    "height": 2732,
+                }
+            ],
+        }
+
+        self.assertTrue(self.updater.sync_official_screenshots(source, official))
+        self.assertEqual(source["apps"][0]["screenshots"], official)
+        self.assertEqual(source["apps"][1]["screenshots"], [])
+        self.assertFalse(self.updater.sync_official_screenshots(source, None))
+        self.assertIsNone(
+            self.updater.validate_official_screenshots(
+                {"iphone": ["https://evil.example/screenshot.png"]}
+            )
+        )
+
+    def test_release_news_combines_platforms_and_is_idempotent(self):
+        sources = {"ios": {"news": []}, "tvos": {"news": []}}
+        events = [
+            {
+                "platform": platform,
+                "appName": "Stremio",
+                "appID": "com.stremio.pal",
+                "version": "2.0.7",
+                "buildVersion": "22",
+                "date": "2026-07-28",
+                "isForwardRelease": True,
+            }
+            for platform in ("ios", "tvos")
+        ]
+
+        changed = self.updater.generate_release_news(
+            sources, events, today=date(2026, 7, 28)
+        )
+        self.assertEqual(changed, {"ios", "tvos"})
+        self.assertEqual(sources["ios"]["news"], sources["tvos"]["news"])
+        item = sources["ios"]["news"][0]
+        self.assertEqual(
+            item["identifier"], "release-com.stremio.pal-2.0.7-b22-ios-tvos"
+        )
+        self.assertIn("iOS, iPadOS, and tvOS", item["caption"])
+        self.assertTrue(item["notify"])
+        self.assertEqual(
+            self.updater.generate_release_news(
+                sources, events, today=date(2026, 7, 28)
+            ),
+            set(),
+        )
+
+    def test_release_news_ignores_backfills_and_stale_releases(self):
+        source = {"news": []}
+        base = {
+            "platform": "ios",
+            "appName": "Stremio",
+            "appID": "com.stremio.pal",
+            "version": "2.0.7",
+            "buildVersion": "22",
+            "date": "2026-07-28",
+            "isForwardRelease": False,
+        }
+        stale = {**base, "isForwardRelease": True, "date": "2026-07-20"}
+        self.assertEqual(
+            self.updater.generate_release_news(
+                {"ios": source}, [base, stale], today=date(2026, 7, 28)
+            ),
+            set(),
+        )
+        self.assertEqual(source["news"], [])
+
+    def test_release_news_retains_latest_fifteen(self):
+        source = {
+            "news": [
+                {
+                    "identifier": f"old-{index:02d}",
+                    "date": f"2026-07-{index + 1:02d}",
+                }
+                for index in range(15)
+            ]
+        }
+        event = {
+            "platform": "ios",
+            "appName": "Stremio",
+            "appID": "com.stremio.pal",
+            "version": "2.0.7",
+            "buildVersion": "22",
+            "date": "2026-07-28",
+            "isForwardRelease": True,
+        }
+        self.updater.generate_release_news(
+            {"ios": source}, [event], today=date(2026, 7, 28)
+        )
+        self.assertEqual(len(source["news"]), 15)
+        self.assertEqual(
+            source["news"][0]["identifier"],
+            "release-com.stremio.pal-2.0.7-b22-ios",
+        )
 
     def test_official_hint_outside_frontier_is_added_once(self):
         official = {"9.9.9b99": {"localizedDescription": "Future"}}
@@ -152,11 +281,12 @@ class UpdaterDiscoveryTests(unittest.TestCase):
             }
         }
 
-        new_count, update_count = self.updater.process_platform(
+        new_count, update_count, releases = self.updater.process_platform(
             "ios", source, found, do_info_plist=False, verbose=False
         )
 
         self.assertEqual(new_count, 0)
+        self.assertEqual(releases, [])
         self.assertGreaterEqual(update_count, 1)
         release = app["versions"][0]
         self.assertEqual(release["localizedDescription"], "Official notes")
@@ -207,7 +337,7 @@ class UpdaterDiscoveryTests(unittest.TestCase):
         with patch.object(
             self.updater, "get_main_app_info_plist", return_value=mismatch
         ):
-            new_count, _ = self.updater.process_platform(
+            new_count, _, _ = self.updater.process_platform(
                 "ios", source, found, do_info_plist=False, verbose=False
             )
         self.assertEqual(new_count, 0)
@@ -228,11 +358,12 @@ class UpdaterDiscoveryTests(unittest.TestCase):
             "get_main_app_info_plist",
             side_effect=[transient_failure, verified],
         ) as plist:
-            new_count, _ = self.updater.process_platform(
+            new_count, _, releases = self.updater.process_platform(
                 "ios", source, found, do_info_plist=False, verbose=False
             )
         self.assertEqual(plist.call_count, 2)
         self.assertEqual(new_count, 1)
+        self.assertEqual(len(releases), 1)
         self.assertEqual(source["apps"][0]["versions"][0]["version"], "2.0.6")
 
     def test_new_release_rejects_mismatched_bundle_identifier(self):
@@ -272,7 +403,7 @@ class UpdaterDiscoveryTests(unittest.TestCase):
         with patch.object(
             self.updater, "get_main_app_info_plist", return_value=mismatched
         ):
-            new_count, _ = self.updater.process_platform(
+            new_count, _, _ = self.updater.process_platform(
                 "ios", source, found, do_info_plist=False, verbose=False
             )
         self.assertEqual(new_count, 0)

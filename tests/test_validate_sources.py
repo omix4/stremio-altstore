@@ -9,7 +9,12 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
 
 from source_compat import mirror_current_version  # noqa: E402
-from validate_sources import ICON_URL, validate_file, validate_source  # noqa: E402
+from validate_sources import (  # noqa: E402
+    ICON_URL,
+    REPO_WEBSITE,
+    validate_file,
+    validate_source,
+)
 
 
 def version(version: str, build: str, platform: str = "ios") -> dict:
@@ -34,9 +39,10 @@ def valid_source(platform: str = "ios") -> dict:
     data = {
         "name": "Stremio test source",
         "sourceURL": f"https://repo.omix4.one/{filename}",
-        "website": "https://www.stremio.com",
+        "website": REPO_WEBSITE,
         "iconURL": ICON_URL,
         "headerURL": ICON_URL,
+        "news": [],
         "apps": [
             {
                 "name": "Stremio",
@@ -44,6 +50,7 @@ def valid_source(platform: str = "ios") -> dict:
                 "developerName": "Stremio",
                 "localizedDescription": "Stremio test app",
                 "iconURL": ICON_URL,
+                "screenshots": [],
                 "appPermissions": {"entitlements": [], "privacy": {}},
                 "versions": [version("2.10.0", "11", platform)],
             },
@@ -53,6 +60,7 @@ def valid_source(platform: str = "ios") -> dict:
                 "developerName": "Stremio",
                 "localizedDescription": "Stremio Lite test app",
                 "iconURL": ICON_URL,
+                "screenshots": [],
                 "appPermissions": {"entitlements": [], "privacy": {}},
                 "versions": [version("1.4.0", "12", platform)],
             },
@@ -66,6 +74,7 @@ def valid_source(platform: str = "ios") -> dict:
                 "developerName": "Stremio",
                 "localizedDescription": "Stremio legacy test app",
                 "iconURL": ICON_URL,
+                "screenshots": [],
                 "appPermissions": {"entitlements": [], "privacy": {}},
                 "versions": [version("1.3.2", "2", platform)],
             }
@@ -156,6 +165,53 @@ class ValidateSourcesTests(unittest.TestCase):
         self.assertEqual(
             sum("size: must be a positive integer" in error for error in errors), 2
         )
+
+    def test_accepts_official_screenshots_and_release_news(self):
+        data = valid_source()
+        data["apps"][0]["screenshots"] = {
+            "iphone": ["https://is1-ssl.mzstatic.com/image/phone.jpg"],
+            "ipad": [
+                {
+                    "imageURL": "https://is1-ssl.mzstatic.com/image/tablet.jpg",
+                    "width": 2048,
+                    "height": 2732,
+                }
+            ],
+        }
+        data["news"] = [
+            {
+                "title": "Stremio 2.10.0 released",
+                "identifier": "release-com.stremio.pal-2.10.0-b11-ios",
+                "caption": "Stremio 2.10.0 is available for iOS and iPadOS.",
+                "date": "2026-07-15",
+                "tintColor": "#7055D9",
+                "notify": True,
+                "appID": "com.stremio.pal",
+            }
+        ]
+        self.assertEqual(validate_source(data, "stremio-ios.json"), [])
+
+    def test_rejects_invalid_screenshots_and_news(self):
+        data = valid_source()
+        data["apps"][0]["screenshots"] = [
+            "https://evil.example/screenshot.png"
+        ]
+        item = {
+            "title": "Release",
+            "identifier": "duplicate",
+            "caption": "A release.",
+            "date": "2026-02-30",
+            "tintColor": "purple",
+            "notify": "yes",
+            "appID": "com.example.missing",
+        }
+        data["news"] = [item, dict(item)]
+        errors = validate_source(data, "stremio-ios.json")
+        self.assertTrue(any("mzstatic.com" in error for error in errors))
+        self.assertTrue(any("real calendar date" in error for error in errors))
+        self.assertTrue(any("identifiers must be unique" in error for error in errors))
+        self.assertTrue(any("notify: must be a boolean" in error for error in errors))
+        self.assertTrue(any("appID" in error for error in errors))
 
     def test_rejects_malformed_source_file(self):
         path = Path("stremio-ios.json")

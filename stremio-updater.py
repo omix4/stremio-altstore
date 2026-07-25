@@ -32,20 +32,22 @@ Requirements: Python 3.8+, standard library.
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import re
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Iterable, Optional
+from urllib.parse import urlparse
 from xml.etree import ElementTree as ET
 
 sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(0, str(Path(__file__).parent / "scripts"))
 import ipa_plist  # noqa: E402
 from ipa_plist import get_main_app_info_plist  # noqa: E402
-from source_compat import mirror_current_version, sort_versions  # noqa: E402
+from source_compat import mirror_current_version, sort_versions, version_key  # noqa: E402
 
 CDN_BASE = "https://dl.strem.io/apple"
 OFFICIAL_SOURCE_URL = f"{CDN_BASE}/altstore/source.json"
@@ -55,6 +57,9 @@ http_request = ipa_plist.http_request
 
 FRONTIER_BUILD_LOOKAHEAD = 3
 INFO_PLIST_ATTEMPTS = 2
+MAX_NEWS_ITEMS = 15
+NEWS_MAX_AGE_DAYS = 3
+PAL_BUNDLE_ID = "com.stremio.pal"
 
 PLATFORMS = {
     "ios":  {"file": "stremio_iOS.ipa",   "label": "iOS",  "json": "stremio-ios.json",
@@ -147,26 +152,75 @@ def generate_frontier_tags(
     return candidates
 
 
-def fetch_official_releases(*, verbose: bool = False) -> dict[str, dict]:
-    """Return whitelisted PAL release metadata; failure is advisory only."""
+def _official_screenshot_url(value: object) -> bool:
+    if not isinstance(value, str):
+        return False
+    parsed = urlparse(value)
+    host = (parsed.hostname or "").lower()
+    return parsed.scheme == "https" and (
+        host == "mzstatic.com" or host.endswith(".mzstatic.com")
+    )
+
+
+def validate_official_screenshots(value: object) -> Optional[dict]:
+    """Return a safe copy of official iPhone/iPad screenshots, or None."""
+    if not isinstance(value, dict) or not value:
+        return None
+    if not set(value).issubset({"iphone", "ipad"}):
+        return None
+
+    validated: dict[str, list] = {}
+    for device, entries in value.items():
+        if not isinstance(entries, list) or not entries or len(entries) > 10:
+            return None
+        safe_entries = []
+        for entry in entries:
+            if isinstance(entry, str):
+                if not _official_screenshot_url(entry):
+                    return None
+                safe_entries.append(entry)
+                continue
+            if not isinstance(entry, dict) or not set(entry).issubset(
+                {"imageURL", "width", "height"}
+            ):
+                return None
+            if not _official_screenshot_url(entry.get("imageURL")):
+                return None
+            for dimension in ("width", "height"):
+                if dimension in entry and (
+                    not isinstance(entry[dimension], int)
+                    or isinstance(entry[dimension], bool)
+                    or entry[dimension] <= 0
+                ):
+                    return None
+            safe_entries.append(copy.deepcopy(entry))
+        validated[device] = safe_entries
+    return validated
+
+
+def fetch_official_metadata(*, verbose: bool = False) -> dict:
+    """Return whitelisted PAL releases and screenshots; failure is advisory."""
+    empty = {"releases": {}, "screenshots": None}
     response = http_request(OFFICIAL_SOURCE_URL, timeout=15)
     if response.status != 200 or not response.body:
         print(f"[WARN] Official source unavailable (HTTP {response.status}); continuing with CDN frontier")
-        return {}
+        return empty
     try:
         source = json.loads(response.body)
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         print(f"[WARN] Official source is invalid JSON ({exc}); continuing with CDN frontier")
-        return {}
+        return empty
 
     if not isinstance(source, dict) or not isinstance(source.get("apps"), list):
         print("[WARN] Official source has an unexpected structure; continuing with CDN frontier")
-        return {}
+        return empty
 
     releases: dict[str, dict] = {}
+    screenshots = None
     for app in source.get("apps", []):
-        if not isinstance(app, dict) or app.get("bundleIdentifier") != TRACKS["pal"]["bundle"]:
+        if not isinstance(app, dict) or app.get("bundleIdentifier") != PAL_BUNDLE_ID:
             continue
+        screenshots = validate_official_screenshots(app.get("screenshots"))
         versions = app.get("versions")
         if not isinstance(versions, list):
             continue
@@ -187,8 +241,17 @@ def fetch_official_releases(*, verbose: bool = False) -> dict[str, dict]:
                     metadata[field] = value
             releases[tag] = metadata
     if verbose:
-        print(f"[INFO] Official source supplied {len(releases)} PAL release hint(s)")
-    return releases
+        screenshot_count = sum(len(items) for items in (screenshots or {}).values())
+        print(
+            f"[INFO] Official source supplied {len(releases)} PAL release hint(s) "
+            f"and {screenshot_count} screenshot(s)"
+        )
+    return {"releases": releases, "screenshots": screenshots}
+
+
+def fetch_official_releases(*, verbose: bool = False) -> dict[str, dict]:
+    """Compatibility helper returning only whitelisted PAL release metadata."""
+    return fetch_official_metadata(verbose=verbose)["releases"]
 
 
 def build_candidate_tags(
@@ -279,6 +342,20 @@ def get_or_create_app(source: dict, name: str, bundle_id: str, tint: str) -> dic
     return app
 
 
+def sync_official_screenshots(source: dict, screenshots: Optional[dict]) -> bool:
+    """Sync validated official screenshots to the PAL listing only."""
+    if screenshots is None:
+        return False
+    for app in source.get("apps", []):
+        if app.get("bundleIdentifier") != PAL_BUNDLE_ID:
+            continue
+        if app.get("screenshots") == screenshots:
+            return False
+        app["screenshots"] = copy.deepcopy(screenshots)
+        return True
+    return False
+
+
 def merge_version(app: dict, version: str, build: int, meta: dict, info: Optional[dict]) -> bool:
     """If the same version exists, refresh its metadata; otherwise append it. Returns True if anything changed."""
     official = meta.get("official") or {}
@@ -322,11 +399,29 @@ def merge_version(app: dict, version: str, build: int, meta: dict, info: Optiona
     return True
 
 
-def process_platform(plat: str, source: dict, found: dict, *, do_info_plist: bool, verbose: bool) -> tuple[int, int]:
+def process_platform(
+    plat: str,
+    source: dict,
+    found: dict,
+    *,
+    do_info_plist: bool,
+    verbose: bool,
+) -> tuple[int, int, list[dict]]:
     info = PLATFORMS[plat]
+
+    managed_bundles = {info["pal_bundle"], info["lite_bundle"]}
+    previous_latest = {bundle: None for bundle in managed_bundles}
+    for app in source.get("apps", []):
+        if app.get("bundleIdentifier") not in managed_bundles:
+            continue
+        versions = app.get("versions", [])
+        previous_latest[app["bundleIdentifier"]] = (
+            max((version_key(item) for item in versions), default=None)
+        )
 
     new_count = 0
     update_count = 0
+    new_releases: list[dict] = []
     for tag, meta in found.get(plat, {}).items():
         pv = parse_version_tag(tag)
         if not pv:
@@ -399,8 +494,27 @@ def process_platform(plat: str, source: dict, found: dict, *, do_info_plist: boo
                     print(f"  [UPDATE] {plat}/{tag} metadata refreshed")
             else:
                 new_count += 1
+                release = next(
+                    item
+                    for item in target["versions"]
+                    if item.get("version") == version
+                    and item.get("buildVersion") == str(build)
+                )
+                old_latest = previous_latest[target["bundleIdentifier"]]
+                new_releases.append(
+                    {
+                        "platform": plat,
+                        "appName": target["name"],
+                        "appID": target["bundleIdentifier"],
+                        "version": version,
+                        "buildVersion": str(build),
+                        "date": release["date"],
+                        "isForwardRelease": (
+                            old_latest is None or version_key(release) > old_latest
+                        ),
+                    }
+                )
                 print(f"  [NEW] {plat}/{tag} -> added ({meta['size'] // 1024 // 1024} MB, {meta.get('date')})")
-    managed_bundles = {info["pal_bundle"], info["lite_bundle"]}
     for app in source.get("apps", []):
         if app.get("bundleIdentifier") not in managed_bundles:
             continue
@@ -409,7 +523,76 @@ def process_platform(plat: str, source: dict, found: dict, *, do_info_plist: boo
         sort_versions(app)
         if mirror_current_version(app):
             update_count += 1
-    return new_count, update_count
+    return new_count, update_count, new_releases
+
+
+def _recent_release(release_date: str, today: date) -> bool:
+    try:
+        published = date.fromisoformat(release_date)
+    except (TypeError, ValueError):
+        return False
+    age = (today - published).days
+    return 0 <= age <= NEWS_MAX_AGE_DAYS
+
+
+def _news_caption(app_name: str, version: str, build: str, platforms: set[str]) -> str:
+    if platforms == {"ios", "tvos"}:
+        availability = "iOS, iPadOS, and tvOS"
+    elif platforms == {"ios"}:
+        availability = "iOS and iPadOS"
+    else:
+        availability = "tvOS"
+    return f"{app_name} {version} (build {build}) is now available for {availability}."
+
+
+def generate_release_news(
+    sources: dict[str, dict], new_releases: Iterable[dict], *, today: Optional[date] = None
+) -> set[str]:
+    """Add deterministic future-release news and return changed platforms."""
+    today = today or datetime.now(timezone.utc).date()
+    eligible = [
+        event
+        for event in new_releases
+        if event.get("isForwardRelease")
+        and _recent_release(str(event.get("date", "")), today)
+    ]
+    grouped: dict[tuple[str, str, str], list[dict]] = {}
+    for event in eligible:
+        key = (event["appID"], event["version"], event["buildVersion"])
+        grouped.setdefault(key, []).append(event)
+
+    changed: set[str] = set()
+    for (app_id, version, build), events in grouped.items():
+        platforms = {event["platform"] for event in events}
+        platform_suffix = "-".join(
+            platform for platform in ("ios", "tvos") if platform in platforms
+        )
+        identifier = f"release-{app_id}-{version}-b{build}-{platform_suffix}"
+        app_name = events[0]["appName"]
+        news_item = {
+            "title": f"{app_name} {version} released",
+            "identifier": identifier,
+            "caption": _news_caption(app_name, version, build, platforms),
+            "date": max(event["date"] for event in events),
+            "tintColor": "#7055D9",
+            "notify": True,
+            "appID": app_id,
+        }
+        for platform in platforms:
+            source = sources.get(platform)
+            if source is None:
+                continue
+            news = source.setdefault("news", [])
+            if any(item.get("identifier") == identifier for item in news):
+                continue
+            news.append(copy.deepcopy(news_item))
+            news.sort(
+                key=lambda item: (str(item.get("date", "")), str(item.get("identifier", ""))),
+                reverse=True,
+            )
+            del news[MAX_NEWS_ITEMS:]
+            changed.add(platform)
+    return changed
 
 
 # ---------------------------------- Main -----------------------------------
@@ -451,7 +634,8 @@ def main() -> int:
         if args.verbose:
             print(f"[INFO] Known {track.upper()} versions: {len(track_tags[track])}")
 
-    official_releases = fetch_official_releases(verbose=args.verbose)
+    official_metadata = fetch_official_metadata(verbose=args.verbose)
+    official_releases = official_metadata["releases"]
     candidates = build_candidate_tags(track_tags, official_releases)
     frontier_count = len(candidates - set(official_releases))
     print(
@@ -464,8 +648,12 @@ def main() -> int:
         verbose=args.verbose,
     )
 
+    platform_changes: dict[str, list[int]] = {}
+    new_releases: list[dict] = []
     for plat, (json_path, source) in loaded_sources.items():
         print(f"\n=== {PLATFORMS[plat]['label']} ===")
+
+        platform_updated = 0
 
         # Source URL update
         url_key = f"source_url_{plat}"
@@ -473,15 +661,39 @@ def main() -> int:
         if url_flag:
             if source.get("sourceURL") != url_flag:
                 source["sourceURL"] = url_flag
-                total_updated += 1
+                platform_updated += 1
                 print(f"[UPDATE] sourceURL = {url_flag}")
 
-        new_count, update_count = process_platform(plat, source, found,
-                                                    do_info_plist=args.info_plist,
-                                                    verbose=args.verbose)
-        total_new += new_count
-        total_updated += update_count
+        if plat == "ios" and sync_official_screenshots(
+            source, official_metadata["screenshots"]
+        ):
+            platform_updated += 1
+            print("[UPDATE] Synced official iPhone/iPad screenshots")
 
+        new_count, update_count, platform_releases = process_platform(
+            plat,
+            source,
+            found,
+            do_info_plist=args.info_plist,
+            verbose=args.verbose,
+        )
+        platform_updated += update_count
+        new_releases.extend(platform_releases)
+        platform_changes[plat] = [new_count, platform_updated]
+        total_new += new_count
+        total_updated += platform_updated
+
+    news_changed = generate_release_news(
+        {plat: source for plat, (_, source) in loaded_sources.items()},
+        new_releases,
+    )
+    for plat in sorted(news_changed):
+        platform_changes[plat][1] += 1
+        total_updated += 1
+        print(f"[UPDATE] {plat}: added release news")
+
+    for plat, (json_path, source) in loaded_sources.items():
+        new_count, update_count = platform_changes[plat]
         if args.dry_run:
             if new_count or update_count:
                 print(f"[DRY-RUN] {plat}: +{new_count} new, ~{update_count} updated (not written)")

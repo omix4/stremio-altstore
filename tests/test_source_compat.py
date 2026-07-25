@@ -110,7 +110,7 @@ class SourceCompatTests(unittest.TestCase):
             }
 
         with patch.object(updater, "get_main_app_info_plist", side_effect=plist_for):
-            new_count, _ = updater.process_platform(
+            new_count, _, _ = updater.process_platform(
                 "ios", source, found, do_info_plist=False, verbose=False
             )
         self.assertEqual(new_count, 2)
