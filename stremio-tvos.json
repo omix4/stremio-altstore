@@ -95,40 +95,6 @@
           "minOSVersion": "15.0"
         }
       ]
-    },
-    {
-      "name": "Stremio Lite",
-      "bundleIdentifier": "com.stremio.ios",
-      "developerName": "Stremio",
-      "subtitle": "Stream movies, series and more — Apple TV.",
-      "localizedDescription": "Stremio Lite — legacy release for Apple TV (tvOS). Requires tvOS 26.0+ (newer Stremio builds require newer tvOS on Apple TV). Prefer the newer Stremio PAL 2.x releases when available.",
-      "iconURL": "https://repo.omix4.one/assets/stremio-icon.png",
-      "tintColor": "#8A5AAB",
-      "category": "entertainment",
-      "screenshots": [],
-      "appPermissions": {
-        "entitlements": [],
-        "privacy": {}
-      },
-      "version": "1.3.6",
-      "versionDate": "2026-01-31",
-      "versionDescription": "Stremio tvOS Lite 1.3.6 beta 7.",
-      "downloadURL": "https://dl.strem.io/apple/1.3.6b7/tvos/stremio_tvOS.ipa",
-      "size": 77258023,
-      "minOSVersion": "26.0",
-      "versions": [
-        {
-          "version": "1.3.6",
-          "buildVersion": "7",
-          "marketingVersion": "1.3.6 beta 7",
-          "date": "2026-01-31",
-          "localizedDescription": "Stremio tvOS Lite 1.3.6 beta 7.",
-          "downloadURL": "https://dl.strem.io/apple/1.3.6b7/tvos/stremio_tvOS.ipa",
-          "size": 77258023,
-          "sha256": "7a0e3679e355672770f580b02b4e4a478857c1665e7abbc5b2471a070ec9d3f3",
-          "minOSVersion": "26.0"
-        }
-      ]
     }
   ],
   "news": []
