@@ -33,8 +33,8 @@ async function fetchFeed(definition: FeedDefinition): Promise<AltSource> {
 
 function FeedError({ definition, onRetry }: { definition: FeedDefinition; onRetry: () => void }) {
   return (
-    <Card className="border-destructive/30">
-      <CardContent className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center">
+    <Card className="flex h-full flex-col border-destructive/30">
+      <CardContent className="flex flex-1 flex-col items-start justify-center gap-4 p-6 pt-6 sm:flex-row sm:items-center sm:pt-6">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
           <AlertCircle className="size-5" aria-hidden="true" />
         </div>
