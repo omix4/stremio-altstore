@@ -178,6 +178,9 @@ class ValidateSourcesTests(unittest.TestCase):
                 }
             ],
         }
+        data["apps"][0]["screenshotURLs"] = [
+            "https://is1-ssl.mzstatic.com/image/phone.jpg"
+        ]
         data["news"] = [
             {
                 "title": "Stremio 2.10.0 released",
@@ -190,6 +193,21 @@ class ValidateSourcesTests(unittest.TestCase):
             }
         ]
         self.assertEqual(validate_source(data, "stremio-ios.json"), [])
+
+    def test_rejects_stale_legacy_screenshot_mirror(self):
+        data = valid_source()
+        data["apps"][0]["screenshots"] = {
+            "iphone": ["https://is1-ssl.mzstatic.com/image/phone.jpg"]
+        }
+        data["apps"][0]["screenshotURLs"] = [
+            "https://is1-ssl.mzstatic.com/image/stale.jpg"
+        ]
+
+        errors = validate_source(data, "stremio-ios.json")
+
+        self.assertTrue(
+            any("must mirror screenshots.iphone" in error for error in errors)
+        )
 
     def test_rejects_invalid_screenshots_and_news(self):
         data = valid_source()

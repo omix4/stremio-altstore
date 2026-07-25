@@ -200,7 +200,7 @@ The repo includes a GitHub Actions workflow that runs `stremio-updater.py` every
 
 Each run also, in the same job:
 
-- **Synchronizes official screenshots**: the PAL iOS listing adopts Stremio's validated iPhone and iPad screenshot metadata from the official source. If that source is unavailable or malformed, the last known-good screenshots remain in place.
+- **Synchronizes official screenshots**: the PAL iOS listing adopts Stremio's validated iPhone and iPad screenshot metadata from the official source and mirrors the iPhone images to the legacy `screenshotURLs` field used by Feather and FlareStore. If that source is unavailable or malformed, the last known-good screenshots remain in place.
 - **Publishes release news**: genuinely new, recent releases receive AltStore news entries and notifications. Matching iOS and tvOS builds discovered together share one combined announcement; backfills, hash changes, and metadata refreshes never create news.
 - **Backfills integrity hashes**: `scripts/add_hashes.py` computes the `sha256` of a few IPAs per run (newest first, budget-limited so it never risks the job's time limit), so every version eventually carries a hash that signing apps can verify the download against.
 - **Regenerates the version tables** in this README from the JSON.

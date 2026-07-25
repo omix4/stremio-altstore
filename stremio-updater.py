@@ -343,15 +343,24 @@ def get_or_create_app(source: dict, name: str, bundle_id: str, tint: str) -> dic
 
 
 def sync_official_screenshots(source: dict, screenshots: Optional[dict]) -> bool:
-    """Sync validated official screenshots to the PAL listing only."""
+    """Sync standard and legacy-compatible screenshots to the PAL listing."""
     if screenshots is None:
         return False
+
+    screenshot_urls = [
+        entry if isinstance(entry, str) else entry["imageURL"]
+        for entry in screenshots.get("iphone", [])
+    ]
     for app in source.get("apps", []):
         if app.get("bundleIdentifier") != PAL_BUNDLE_ID:
             continue
-        if app.get("screenshots") == screenshots:
+        if (
+            app.get("screenshots") == screenshots
+            and app.get("screenshotURLs") == screenshot_urls
+        ):
             return False
         app["screenshots"] = copy.deepcopy(screenshots)
+        app["screenshotURLs"] = copy.deepcopy(screenshot_urls)
         return True
     return False
 

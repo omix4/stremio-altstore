@@ -123,6 +123,20 @@ def _validate_screenshots(value: object, context: str, errors: list[str]) -> Non
         _validate_screenshot_entries(entries, f"{context}.{device}", errors)
 
 
+def _screenshot_urls(value: object) -> list[str]:
+    """Flatten the iPhone screenshots for legacy source consumers."""
+    entries = value.get("iphone", []) if isinstance(value, dict) else value
+    if not isinstance(entries, list):
+        return []
+    urls = []
+    for entry in entries:
+        if isinstance(entry, str):
+            urls.append(entry)
+        elif isinstance(entry, dict) and isinstance(entry.get("imageURL"), str):
+            urls.append(entry["imageURL"])
+    return urls
+
+
 def _validate_news(data: dict, filename: str, bundles: set[str], errors: list[str]) -> None:
     news = data.get("news")
     if not isinstance(news, list):
@@ -221,11 +235,27 @@ def validate_source(data: object, filename: str) -> list[str]:
         _require_nonempty_strings(app, LEGACY_APP_STRING_FIELDS, context, errors)
         screenshots = app.get("screenshots")
         _validate_screenshots(screenshots, f"{context}.screenshots", errors)
-        if screenshots and (
-            config["platform"] != "ios"
-            or app.get("bundleIdentifier") != "com.stremio.pal"
-        ):
+        is_ios_pal = (
+            config["platform"] == "ios"
+            and app.get("bundleIdentifier") == "com.stremio.pal"
+        )
+        if screenshots and not is_ios_pal:
             errors.append(f"{context}.screenshots: only the iOS PAL app may use them")
+        screenshot_urls = app.get("screenshotURLs")
+        if screenshot_urls is not None:
+            _validate_screenshot_entries(
+                screenshot_urls, f"{context}.screenshotURLs", errors
+            )
+            if screenshot_urls and not is_ios_pal:
+                errors.append(
+                    f"{context}.screenshotURLs: only the iOS PAL app may use them"
+                )
+        if screenshots and is_ios_pal:
+            expected_urls = _screenshot_urls(screenshots)
+            if screenshot_urls != expected_urls:
+                errors.append(
+                    f"{context}.screenshotURLs: must mirror screenshots.iphone"
+                )
         if (
             not isinstance(app.get("size"), int)
             or isinstance(app.get("size"), bool)

@@ -52,6 +52,12 @@
           }
         ]
       },
+      "screenshotURLs": [
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/6a/ee/19/6aee194d-7b33-aaab-b3bf-64b9773e6120/login.png/1242x2688ss.jpg",
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/8a/9d/46/8a9d46c5-68f5-4396-7e97-a0fdc2e4c99b/7A634238-A47C-4B30-9373-0EDCE5E01D8C.png/1242x2688ss.jpg",
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e0/3b/96/e03b96c3-e1a5-ad13-b45a-a267cf9860a5/D1DC7867-6EE9-4837-919E-81902FC3344F.png/1242x2688ss.jpg",
+        "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/9d/ec/de/9decdee5-5e8c-4ac8-f213-6cd259ce7eeb/5EA57C1E-F7EC-4C2D-AC9A-771814B51ED4.png/1242x2688ss.jpg"
+      ],
       "appPermissions": {
         "entitlements": [],
         "privacy": {}

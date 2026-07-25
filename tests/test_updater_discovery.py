@@ -143,7 +143,12 @@ class UpdaterDiscoveryTests(unittest.TestCase):
 
         self.assertTrue(self.updater.sync_official_screenshots(source, official))
         self.assertEqual(source["apps"][0]["screenshots"], official)
+        self.assertEqual(
+            source["apps"][0]["screenshotURLs"],
+            ["https://is1-ssl.mzstatic.com/image/phone.jpg"],
+        )
         self.assertEqual(source["apps"][1]["screenshots"], [])
+        self.assertFalse(self.updater.sync_official_screenshots(source, official))
         self.assertFalse(self.updater.sync_official_screenshots(source, None))
         self.assertIsNone(
             self.updater.validate_official_screenshots(
