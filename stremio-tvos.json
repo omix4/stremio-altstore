@@ -27,13 +27,23 @@
         "entitlements": [],
         "privacy": {}
       },
-      "version": "2.0.6",
-      "versionDate": "2026-07-22",
-      "versionDescription": "feat: new desktop like UI for player and navigation on iPadOS",
-      "downloadURL": "https://dl.strem.io/apple/2.0.6b21/tvos/stremio_tvOS.ipa",
-      "size": 73987585,
+      "version": "2.0.7",
+      "versionDate": "2026-08-24",
+      "versionDescription": "Stremio 2.0.7 (build 22).",
+      "downloadURL": "https://dl.strem.io/apple/2.0.7b22/tvos/stremio_tvOS.ipa",
+      "size": 74029788,
       "minOSVersion": "15.0",
       "versions": [
+        {
+          "version": "2.0.7",
+          "buildVersion": "22",
+          "date": "2026-08-24",
+          "localizedDescription": "Stremio 2.0.7 (build 22).",
+          "downloadURL": "https://dl.strem.io/apple/2.0.7b22/tvos/stremio_tvOS.ipa",
+          "size": 74029788,
+          "sha256": "7f4ced8435ca8aa625b4ea16dbdcbb5b8374e5cb6191b68fddb2b60eedee5c72",
+          "minOSVersion": "15.0"
+        },
         {
           "version": "2.0.6",
           "buildVersion": "21",
@@ -97,5 +107,15 @@
       ]
     }
   ],
-  "news": []
+  "news": [
+    {
+      "title": "Stremio 2.0.7 released",
+      "identifier": "release-com.stremio.pal-2.0.7-b22-ios-tvos",
+      "caption": "Stremio 2.0.7 (build 22) is now available for iOS, iPadOS, and tvOS.",
+      "date": "2026-08-24",
+      "tintColor": "#7055D9",
+      "notify": true,
+      "appID": "com.stremio.pal"
+    }
+  ]
 }
