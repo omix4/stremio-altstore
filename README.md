@@ -2,7 +2,7 @@
 
 [![Update source](https://github.com/omix4/stremio-altstore/actions/workflows/update.yml/badge.svg)](https://github.com/omix4/stremio-altstore/actions/workflows/update.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Stremio iOS versions](https://img.shields.io/badge/iOS-12%20versions-7055D9)](stremio-ios.json)
+[![Stremio iOS versions](https://img.shields.io/badge/iOS-11%20versions-7055D9)](stremio-ios.json)
 [![Stremio tvOS versions](https://img.shields.io/badge/tvOS-7%20versions-7055D9)](stremio-tvos.json)
 [![Browse repository](https://img.shields.io/badge/Browse-repo.omix4.one-7055D9)](https://repo.omix4.one/)
 
@@ -155,12 +155,6 @@ Prefer to run your own source (own URL, own update schedule)? Fork and host it i
 | 2.0.0 | 13 | 2026-06-05 | 74 MB | [IPA](https://dl.strem.io/apple/2.0.0b13/ios/stremio_iOS.ipa) |
 | 2.0.0 | 11 | 2026-05-30 | 74 MB | [IPA](https://dl.strem.io/apple/2.0.0b11/ios/stremio_iOS.ipa) |
 
-#### Stremio Lite (legacy): `com.stremio.ios`
-
-| Version | Build | Date | Size | Download |
-|---|---|---|---|---|
-| 1.3.6 | 7 | 2026-01-31 | 75 MB | [IPA](https://dl.strem.io/apple/1.3.6b7/ios/stremio_iOS.ipa) |
-
 ### tvOS: `stremio-tvos.json`
 
 #### Stremio (PAL, full-featured): `com.stremio.pal`
@@ -181,6 +175,7 @@ These builds were removed from the installable sources after two consecutive CDN
 
 | Platform | App | Version | Build | Released | Removed | Status |
 |---|---|---|---|---|---|---|
+| iOS / iPadOS | Stremio Lite | 1.3.6 | 7 | 2026-01-31 | 2026-09-03 | Unavailable (HTTP 404) |
 | tvOS | Stremio Lite | 1.3.6 | 7 | 2026-01-31 | 2026-07-25 | Unavailable (HTTP 404) |
 | iOS / iPadOS | Stremio Legacy | 1.3.2 | 2 | 2025-11-19 | 2026-07-25 | Unavailable (HTTP 404) |
 | iOS / iPadOS | Stremio Legacy | 1.3.0 | 1 | 2025-10-03 | 2026-07-24 | Unavailable (HTTP 404) |
