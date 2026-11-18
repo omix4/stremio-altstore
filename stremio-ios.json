@@ -63,8 +63,8 @@
         "privacy": {}
       },
       "version": "2.1.2",
-      "versionDate": "2026-11-17",
-      "versionDescription": "Stremio 2.1.2 (build 27).",
+      "versionDate": "2026-11-18",
+      "versionDescription": "New\n\n- Added an option in Appearance settings to show titles below catalog posters.\n- Play HTTP, HTTPS and magnet links directly by pasting them into Search.\n- Added an experimental version streaming server which was rewritten in rust, available in Advanced settings and requiring an app restart.\n- Added Native Player as an external player, with playback progress syncing back to Stremio.\n\nFixes\n\n- Fixed title-preview action buttons when using the app as a guest.\n- Torrent status now shows peer counts and download speed even when a stream has no file index.\n- Clarified warnings explaining why software decoding is being used (interlaced videos).",
       "downloadURL": "https://dl.strem.io/apple/2.1.2b27/ios/stremio_iOS.ipa",
       "size": 88256855,
       "minOSVersion": "15.0",
@@ -72,8 +72,8 @@
         {
           "version": "2.1.2",
           "buildVersion": "27",
-          "date": "2026-11-17",
-          "localizedDescription": "Stremio 2.1.2 (build 27).",
+          "date": "2026-11-18",
+          "localizedDescription": "New\n\n- Added an option in Appearance settings to show titles below catalog posters.\n- Play HTTP, HTTPS and magnet links directly by pasting them into Search.\n- Added an experimental version streaming server which was rewritten in rust, available in Advanced settings and requiring an app restart.\n- Added Native Player as an external player, with playback progress syncing back to Stremio.\n\nFixes\n\n- Fixed title-preview action buttons when using the app as a guest.\n- Torrent status now shows peer counts and download speed even when a stream has no file index.\n- Clarified warnings explaining why software decoding is being used (interlaced videos).",
           "downloadURL": "https://dl.strem.io/apple/2.1.2b27/ios/stremio_iOS.ipa",
           "size": 88256855,
           "sha256": "6e4126bc1afeaf5bb9abd97c230a341e2eecf26e37b0ed41ce5b5852e39bd37a",

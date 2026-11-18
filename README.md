@@ -143,7 +143,7 @@ Prefer to run your own source (own URL, own update schedule)? Fork and host it i
 
 | Version | Build | Date | Size | Download |
 |---|---|---|---|---|
-| 2.1.2 | 27 | 2026-11-17 | 84 MB | [IPA](https://dl.strem.io/apple/2.1.2b27/ios/stremio_iOS.ipa) |
+| 2.1.2 | 27 | 2026-11-18 | 84 MB | [IPA](https://dl.strem.io/apple/2.1.2b27/ios/stremio_iOS.ipa) |
 | 2.1.1 | 25 | 2026-11-02 | 80 MB | [IPA](https://dl.strem.io/apple/2.1.1b25/ios/stremio_iOS.ipa) |
 | 2.1.0 | 24 | 2026-10-21 | 80 MB | [IPA](https://dl.strem.io/apple/2.1.0b24/ios/stremio_iOS.ipa) |
 | 2.0.8 | 23 | 2026-09-11 | 74 MB | [IPA](https://dl.strem.io/apple/2.0.8b23/ios/stremio_iOS.ipa) |
@@ -165,7 +165,7 @@ Prefer to run your own source (own URL, own update schedule)? Fork and host it i
 
 | Version | Build | Date | Size | Download |
 |---|---|---|---|---|
-| 2.1.2 | 27 | 2026-11-17 | 74 MB | [IPA](https://dl.strem.io/apple/2.1.2b27/tvos/stremio_tvOS.ipa) |
+| 2.1.2 | 27 | 2026-11-18 | 74 MB | [IPA](https://dl.strem.io/apple/2.1.2b27/tvos/stremio_tvOS.ipa) |
 | 2.1.1 | 25 | 2026-11-02 | 71 MB | [IPA](https://dl.strem.io/apple/2.1.1b25/tvos/stremio_tvOS.ipa) |
 | 2.1.0 | 24 | 2026-10-21 | 71 MB | [IPA](https://dl.strem.io/apple/2.1.0b24/tvos/stremio_tvOS.ipa) |
 | 2.0.8 | 23 | 2026-09-11 | 70 MB | [IPA](https://dl.strem.io/apple/2.0.8b23/tvos/stremio_tvOS.ipa) |
