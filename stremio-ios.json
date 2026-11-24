@@ -63,8 +63,8 @@
         "privacy": {}
       },
       "version": "2.1.3",
-      "versionDate": "2026-11-23",
-      "versionDescription": "Stremio 2.1.3 (build 28).",
+      "versionDate": "2026-11-24",
+      "versionDescription": "Features\n\n- Redesigned toast notifications with adaptive layouts and Liquid Glass styling on supported systems.\n- Added dismissible toast cards with swipe gestures and stacked notifications.\n- Added in-app notifications and modals with artwork and action buttons.\n\nFixes\n\n- Dialogs now appear one at a time, preventing announcements, profile selection, subtitle prompts and add-on confirmations from conflicting.\n- Preserved rounded-button styling on Mac, including Liquid Glass effects on supported versions and custom backgrounds on macOS 12.",
       "downloadURL": "https://dl.strem.io/apple/2.1.3b28/ios/stremio_iOS.ipa",
       "size": 88297123,
       "minOSVersion": "15.0",
@@ -72,8 +72,8 @@
         {
           "version": "2.1.3",
           "buildVersion": "28",
-          "date": "2026-11-23",
-          "localizedDescription": "Stremio 2.1.3 (build 28).",
+          "date": "2026-11-24",
+          "localizedDescription": "Features\n\n- Redesigned toast notifications with adaptive layouts and Liquid Glass styling on supported systems.\n- Added dismissible toast cards with swipe gestures and stacked notifications.\n- Added in-app notifications and modals with artwork and action buttons.\n\nFixes\n\n- Dialogs now appear one at a time, preventing announcements, profile selection, subtitle prompts and add-on confirmations from conflicting.\n- Preserved rounded-button styling on Mac, including Liquid Glass effects on supported versions and custom backgrounds on macOS 12.",
           "downloadURL": "https://dl.strem.io/apple/2.1.3b28/ios/stremio_iOS.ipa",
           "size": 88297123,
           "sha256": "8cae780dbf9e407bd7a0960beba1d601b5ed8d0ea148e4af17544d41772f1e09",
