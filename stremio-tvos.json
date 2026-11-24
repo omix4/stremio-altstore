@@ -27,13 +27,23 @@
         "entitlements": [],
         "privacy": {}
       },
-      "version": "2.1.2",
-      "versionDate": "2026-11-18",
-      "versionDescription": "New\n\n- Added an option in Appearance settings to show titles below catalog posters.\n- Play HTTP, HTTPS and magnet links directly by pasting them into Search.\n- Added an experimental version streaming server which was rewritten in rust, available in Advanced settings and requiring an app restart.\n- Added Native Player as an external player, with playback progress syncing back to Stremio.\n\nFixes\n\n- Fixed title-preview action buttons when using the app as a guest.\n- Torrent status now shows peer counts and download speed even when a stream has no file index.\n- Clarified warnings explaining why software decoding is being used (interlaced videos).",
-      "downloadURL": "https://dl.strem.io/apple/2.1.2b27/tvos/stremio_tvOS.ipa",
-      "size": 78014855,
+      "version": "2.1.3",
+      "versionDate": "2026-11-23",
+      "versionDescription": "Stremio 2.1.3 (build 28).",
+      "downloadURL": "https://dl.strem.io/apple/2.1.3b28/tvos/stremio_tvOS.ipa",
+      "size": 78079871,
       "minOSVersion": "15.0",
       "versions": [
+        {
+          "version": "2.1.3",
+          "buildVersion": "28",
+          "date": "2026-11-23",
+          "localizedDescription": "Stremio 2.1.3 (build 28).",
+          "downloadURL": "https://dl.strem.io/apple/2.1.3b28/tvos/stremio_tvOS.ipa",
+          "size": 78079871,
+          "sha256": "3369549a765a64692c1c23eec4cd0317dec391237fd2680f89d0ec780e628a74",
+          "minOSVersion": "15.0"
+        },
         {
           "version": "2.1.2",
           "buildVersion": "27",
@@ -148,6 +158,15 @@
     }
   ],
   "news": [
+    {
+      "title": "Stremio 2.1.3 released",
+      "identifier": "release-com.stremio.pal-2.1.3-b28-ios-tvos",
+      "caption": "Stremio 2.1.3 (build 28) is now available for iOS, iPadOS, and tvOS.",
+      "date": "2026-11-23",
+      "tintColor": "#7055D9",
+      "notify": true,
+      "appID": "com.stremio.pal"
+    },
     {
       "title": "Stremio 2.1.2 released",
       "identifier": "release-com.stremio.pal-2.1.2-b27-ios-tvos",
